@@ -5,7 +5,7 @@ import numpy as np
 import torch
 
 
-class DefaultLinearAlgebraBackend:
+class DefaultNumPyLinearAlgebraBackend:
 	"""
 	DefaultLinearAlgebraBackend provides default implementations for basic linear algebra operations
 	using NumPy. This class serves as a base class for other backends.
@@ -34,7 +34,6 @@ class DefaultLinearAlgebraBackend:
 		numpy.ndarray
 			The result of the matrix multiplication.
 		"""
-		logging.warning("Using default NumPy matmul implementation")
 		return np.dot(a, b)
 
 	def inv(self, a: np.ndarray) -> np.ndarray:
@@ -51,43 +50,11 @@ class DefaultLinearAlgebraBackend:
 		numpy.ndarray
 			The inverse of the input matrix.
 		"""
-		logging.warning("Using default NumPy inv implementation")
 		return np.linalg.inv(a)
 
-
-class NumPyBackend(DefaultLinearAlgebraBackend):
-	"""
-	NumPyBackend provides implementations for basic linear algebra operations using NumPy.
-
-	Methods
-	-------
-	matmul(a, b)
-		Performs matrix multiplication using NumPy.
-	inv(a)
-		Computes the inverse of a matrix using NumPy.
-	"""
-
-	def matmul(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+	def pinv(self, a: np.ndarray) -> np.ndarray:
 		"""
-		Performs matrix multiplication using NumPy.
-
-		Parameters
-		----------
-		a : array_like
-			First matrix to be multiplied.
-		b : array_like
-			Second matrix to be multiplied.
-
-		Returns
-		-------
-		numpy.ndarray
-			The result of the matrix multiplication.
-		"""
-		return np.dot(a, b)
-
-	def inv(self, a: np.ndarray) -> np.ndarray:
-		"""
-		Computes the inverse of a matrix using NumPy.
+		Computes the pseudo-inverse of a matrix using NumPy and logs a warning.
 
 		Parameters
 		----------
@@ -97,12 +64,12 @@ class NumPyBackend(DefaultLinearAlgebraBackend):
 		Returns
 		-------
 		numpy.ndarray
-			The inverse of the input matrix.
+			The pseudo-inverse of the input matrix.
 		"""
-		return np.linalg.inv(a)
+		return np.linalg.pinv(a)
 
 
-class JaxBackend(DefaultLinearAlgebraBackend):
+class JaxBackend(DefaultNumPyLinearAlgebraBackend):
 	"""
 	JaxBackend provides implementations for basic linear algebra operations using JAX.
 
@@ -148,8 +115,30 @@ class JaxBackend(DefaultLinearAlgebraBackend):
 		"""
 		return jnp.linalg.inv(a)
 
+	def pinv(self, a: jnp.ndarray) -> jnp.ndarray:
+		"""
+		Computes the pseudo-inverse of a matrix using JAX.
 
-class MLXBackend(DefaultLinearAlgebraBackend):
+		Parameters
+		----------
+		a : array_like
+			Matrix to be inverted.
+
+		Returns
+		-------
+		jax.numpy.ndarray
+			The pseudo-inverse of the input matrix.
+		"""
+		logging.warning("Pseudo-inverse not yet implemented for backend 'JAX'. Falling back to NumPy implementation.")
+		# Convert to numpy array
+		a = a.asnumpy()
+		# Call superclass implementation
+		res = super().pinv(a)
+		# Convert back to JAX
+		return jnp.array(res)
+
+
+class MLXBackend(DefaultNumPyLinearAlgebraBackend):
 	"""
 	MLXBackend provides implementations for basic linear algebra operations using MLX.
 
@@ -196,7 +185,7 @@ class MLXBackend(DefaultLinearAlgebraBackend):
 		return mx.linalg.inv(a)
 
 
-class TorchBackend(DefaultLinearAlgebraBackend):
+class TorchBackend(DefaultNumPyLinearAlgebraBackend):
 	"""
 	TorchBackend provides implementations for basic linear algebra operations using PyTorch.
 
