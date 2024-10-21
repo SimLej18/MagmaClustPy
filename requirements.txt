@@ -5,3 +5,4 @@ numpy~=2.1.2
 torch~=2.4.1
 pytest~=7.4.4
 rpy2~=3.5.16
+pandas~=2.2.2

@@ -8,8 +8,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[feat] Test script and configs for R-Python equivalence">
+    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[enhanc] new way of falling back to default backend when implementation of a method is lacking">
+      <change afterPath="$PROJECT_DIR$/MagmaClustPy/kernel_to_matrices.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/MagmaClustPy/kernels.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/MagmaClustPy/simulate_data.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/debug.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/backend.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/backend.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,6 +49,7 @@
     "Python tests.Python tests for R_equivalence.test_sum_function_equivalence.executor": "Run",
     "Python tests.R Equivalence.executor": "Run",
     "Python.Build Package.executor": "Run",
+    "Python.Debug.executor": "Debug",
     "Python.MagmaClustPy.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "main",
@@ -60,7 +68,7 @@
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
-  <component name="RunManager" selected="Python tests.R Equivalence">
+  <component name="RunManager" selected="Python.Debug">
     <configuration name="Build Package" type="PythonConfigurationType" factoryName="Python">
       <module name="MagmaClustPy" />
       <option name="ENV_FILES" value="" />
@@ -81,6 +89,30 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="true" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Debug" type="PythonConfigurationType" factoryName="Python">
+      <module name="MagmaClustPy" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="SDK_NAME" value="MagmaClustPy" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tests/debug.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
       <option name="REDIRECT_INPUT" value="false" />
       <option name="INPUT_FILE" value="" />
       <method v="2" />
@@ -139,6 +171,7 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Python.Debug" />
       <item itemvalue="Python.Build Package" />
       <item itemvalue="Python docs.Build Doc" />
       <item itemvalue="Python tests.R Equivalence" />
@@ -167,7 +200,7 @@
       <option name="presentableId" value="Default" />
       <updated>1728989552891</updated>
       <workItem from="1728989554246" duration="104000" />
-      <workItem from="1728989664592" duration="9479000" />
+      <workItem from="1728989664592" duration="40552000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities">
       <option name="closed" value="true" />
@@ -185,7 +218,15 @@
       <option name="project" value="LOCAL" />
       <updated>1728995231022</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="[enhanc] new way of falling back to default backend when implementation of a method is lacking">
+      <option name="closed" value="true" />
+      <created>1729079525334</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1729079525334</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -194,7 +235,24 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities" />
     <MESSAGE value="[feat] Test script and configs for R-Python equivalence" />
-    <option name="LAST_COMMIT_MESSAGE" value="[feat] Test script and configs for R-Python equivalence" />
+    <MESSAGE value="[enhanc] new way of falling back to default backend when implementation of a method is lacking" />
+    <option name="LAST_COMMIT_MESSAGE" value="[enhanc] new way of falling back to default backend when implementation of a method is lacking" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/MagmaClustPy/simulate_data.py</url>
+          <line>157</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/MagmaClustPy/simulate_data.py</url>
+          <line>155</line>
+          <option name="timeStamp" value="13" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/MagmaClustPy$R_Equivalence.coverage" NAME="R Equivalence Coverage Results" MODIFIED="1728995198031" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
@@ -202,5 +260,6 @@
     <SUITE FILE_PATH="coverage/MagmaClustPy$Doc_test.coverage" NAME="Doc test Coverage Results" MODIFIED="1728994491151" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/MagmaClustPy$Build_Package.coverage" NAME="Build Package Coverage Results" MODIFIED="1728992883279" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/MagmaClustPy$MagmaClustPy.coverage" NAME="MagmaClustPy Coverage Results" MODIFIED="1728992726332" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/MagmaClustPy$Debug.coverage" NAME="Debug Coverage Results" MODIFIED="1729513879274" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

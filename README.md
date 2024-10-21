@@ -20,3 +20,6 @@ TODO
 * The library is not a package, but a Python module
 * We let the user chose a specific linear algebra backend. Current choices are `numpy`, `jax`, `torch` and `mlx`.
 * We use matplotlib for plotting instead of ggplot2
+* Files, class names, functions names, variables and parameters follow the Python naming conventions
+* This library sticks with the default precision of the linear algebra backend (or the one specified by the user). No implicit rounding of numbers is performed by the library itself.
+* 
