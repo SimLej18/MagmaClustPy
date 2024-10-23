@@ -8,14 +8,14 @@ from MagmaClustPy.kernels import SquaredExponentialKernel
 
 
 def simu_db(m: int = 10, n: int = 10, k: int = 1, covariate: bool = False,
-            grid: lab.array_type = lab.range(0, 10, 0.05),
-            grid_cov: lab.array_type = lab.range(0, 10, 0.5),
+            grid: lab.array.type = lab.arange(0, 10, 0.05),
+            grid_cov: lab.array.type = lab.arange(0, 10, 0.5),
             common_input: bool = True, common_hp: bool = True, add_hp: bool = False, add_clust: bool = False,
             int_mu_v: Tuple[int, int] = (4, 5), int_mu_l: Tuple[int, int] = (0, 1), int_i_v: Tuple[int, int] = (1, 2),
             int_i_l: Tuple[int, int] = (0, 1), int_i_sigma: Tuple[float, float] = (0, 0.2),
             lambda_int: Tuple[int, int] = (30, 40), m_int: Tuple[int, int] = (0, 10),
             lengthscale_int: Tuple[int, int] = (30, 40), m0_slope: Tuple[int, int] = (-5, 5),
-            m0_intercept: Tuple[int, int] = (-50, 50)) -> lab.array_type:
+            m0_intercept: Tuple[int, int] = (-50, 50)) -> lab.array.type:
 	"""
 	Simulate a dataset tailored for MagmaClustPy.
 
@@ -109,7 +109,7 @@ def simu_db(m: int = 10, n: int = 10, k: int = 1, covariate: bool = False,
 		raise NotImplementedError("The 'covariate' argument is not yet implemented.")
 	else:
 		if common_input:
-			t_i = lab.sort(lab.sample(grid, n, replace=False))  # The selected inputs, shared across tasks
+			t_i = lab.sort(lab.random.sample(grid, n, replace=False))  # The selected inputs, shared across tasks
 
 		# Dataframe to store the simulated data
 		db = pd.DataFrame(columns=['ID', 'Input', 'Output'])
@@ -117,26 +117,26 @@ def simu_db(m: int = 10, n: int = 10, k: int = 1, covariate: bool = False,
 		# Generate clusters
 		for cluster in range(1, k + 1):
 			# Generate mean process for this cluster
-			m_0 = lab.draw(m0_intercept) + lab.draw(m0_slope) * grid  # Mean prior with random slope and intercept
-			mu_v = lab.draw(int_mu_v)  # Variance hyperparameter of the mean process' kernel
-			mu_l = lab.draw(int_mu_l)  # Lengthscale hyperparameter of the mean process' kernel
+			m_0 = lab.random.draw(m0_intercept) + lab.random.draw(m0_slope) * grid  # Mean prior with random slope and intercept
+			mu_v = lab.random.draw(int_mu_v)  # Variance hyperparameter of the mean process' kernel
+			mu_l = lab.random.draw(int_mu_l)  # Lengthscale hyperparameter of the mean process' kernel
 
 			db_0 = simu_indiv_se(_id="0", _input=grid, mean=m_0, v=mu_v, l=mu_l, sigma=0)
 
 			if common_hp:
-				i_v = lab.draw(int_i_v)
-				i_l = lab.draw(int_i_l)
-				i_sigma = lab.draw(int_i_sigma)
+				i_v = lab.random.draw(int_i_v)
+				i_l = lab.random.draw(int_i_l)
+				i_sigma = lab.random.draw(int_i_sigma)
 
 			for indiv in range(1, m + 1):
 				# Generate individual process
 				if not common_input:
-					t_i = lab.sort(lab.sample(grid, n, replace=False))
+					t_i = lab.sort(lab.random.sample(grid, n, replace=False))
 
 				if not common_hp:
-					i_v = lab.draw(int_i_v)
-					i_l = lab.draw(int_i_l)
-					i_sigma = lab.draw(int_i_sigma)
+					i_v = lab.random.draw(int_i_v)
+					i_l = lab.random.draw(int_i_l)
+					i_sigma = lab.random.draw(int_i_sigma)
 
 				# Extract mean for this individual
 				mean_i = db_0[db_0['Input'].isin(t_i)]['Output'].values
@@ -158,7 +158,7 @@ def simu_db(m: int = 10, n: int = 10, k: int = 1, covariate: bool = False,
 	return db
 
 
-def simu_indiv_se(_id: str, _input: lab.array_type, mean: lab.array_type, v: float, l: float, sigma: float) \
+def simu_indiv_se(_id: str, _input: lab.array.type, mean: lab.array.type, v: float, l: float, sigma: float) \
 		-> pd.DataFrame:
 	"""
 	Simulate a batch of data for one individual using a GP with the Squared Exponential kernel.

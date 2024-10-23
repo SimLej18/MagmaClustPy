@@ -12,16 +12,16 @@ from MagmaClustPy.em_magma import e_step, m_step
 
 def train_magma(
 		data: pd.DataFrame,
-		prior_mean: float | lab.array_type | Callable | pd.DataFrame = None,
+		prior_mean: float | lab.array.type | Callable | pd.DataFrame = None,
 		kern_0: Kernel = None,
 		kern_i: Kernel = None,
 		common_hp: bool = True,
-		grid_inputs: lab.array_type = None,
+		grid_inputs: lab.array.type = None,
 		pen_diag: float = config["pen_diag"],
 		n_iter_max: int = 25,
 		cv_threshold: float = 1e-3,
 		fast_approx: bool = False
-) -> (pd.DataFrame, pd.DataFrame, Dict[str, Any], lab.array_type, lab.array_type, bool, float):
+) -> (pd.DataFrame, pd.DataFrame, Dict[str, Any], lab.array.type, lab.array.type, bool, float):
 	"""
 	Train Magma with an EM algorithm.
 
@@ -53,7 +53,7 @@ def train_magma(
 		- A function. This function is defined as the hyper_prior mean.
 		- A pandas DataFrame. Required columns: Input, Output. The Input values should include
 		  at least the same values as in the `data` argument.
-	:type prior_mean: float | lab.array_type | Callable | pd.DataFrame
+	:type prior_mean: float | lab.array.type | Callable | pd.DataFrame
 	:param kern_0: A Kernel instance, associated with the mean GP. Several popular kernels
 		(see `The Kernel Cookbook <https://www.cs.toronto.edu/~duvenaud/cookbook/>`_) are already implemented
 		and can be selected within the following list:
@@ -75,7 +75,7 @@ def train_magma(
 	:type common_hp: bool
 	:param grid_inputs: A vector, indicating the grid of additional reference inputs on which the mean process'
 		hyper-posterior should be evaluated.
-	:type grid_inputs: lab.array_type
+	:type grid_inputs: lab.array.type
 	:param pen_diag: A number. A jitter term, added on the diagonal to prevent numerical issues when inverting nearly
 		singular matrices.
 	:type pen_diag: float
@@ -108,7 +108,7 @@ def train_magma(
 		- seq_loglikelihood: An array, containing the sequence of log-likelihood values associated with each iteration.
 		- converged: A boolean value indicated whether the EM algorithm converged or not.
 		- training_time: Total running time of the complete training.
-	:rtype: (pd.DataFrame, pd.DataFrame, Dict[str, Any], lab.array_type, lab.array_type, bool, float)
+	:rtype: (pd.DataFrame, pd.DataFrame, Dict[str, Any], lab.array.type, lab.array.type, bool, float)
 	"""
 	# Asser the correct type and format of the data
 	assert isinstance(data, pd.DataFrame), "The data argument must be a pandas DataFrame."

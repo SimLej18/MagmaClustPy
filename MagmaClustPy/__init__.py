@@ -1,7 +1,7 @@
-from MagmaClustPy.backend import DefaultNumPyLinearAlgebraBackend
+from MagmaClustPy.backend import DefaultNumPyBackend
 
 
-lin_alg_backend = DefaultNumPyLinearAlgebraBackend()
+lin_alg_backend = DefaultNumPyBackend()
 
 config = {
 	"pen_diag": 1e-10,

@@ -36,7 +36,7 @@ class Kernel:
 		"""
 		raise NotImplementedError
 
-	def compute_matrix(self, x1: lab.array_type, x2: lab.array_type = None) -> lab.array_type:
+	def compute_matrix(self, x1: lab.array.type, x2: lab.array.type = None) -> lab.array.type:
 		"""
 		Compute the kernel matrix between two sets of inputs.
 
@@ -61,7 +61,7 @@ class Kernel:
 		:return: The inverse covariance matrix (n_samples, n_samples).
 		"""
 		k = self.compute_matrix(x)
-		return lab.inv(k + pen_diag * lab.eye(k.shape[0]))
+		return lab.linalg.inv(k + pen_diag * lab.eye(k.shape[0]))
 
 
 class SquaredExponentialKernel(Kernel):

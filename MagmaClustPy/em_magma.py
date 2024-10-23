@@ -8,11 +8,11 @@ from MagmaClustPy.kernels import Kernel
 
 
 def e_step(db: pd.DataFrame,
-           m_0: lab.array_type,
+           m_0: lab.array.type,
            kern_0: Kernel,
            kern_i: Kernel,
            pen_diag: float = config["pen_diag"],
-           all_inputs: lab.array_type = None) -> Dict[str, Any]:
+           all_inputs: lab.array.type = None) -> Dict[str, Any]:
 	"""
 	E-Step of the EM algorithm
 
@@ -33,7 +33,7 @@ def e_step(db: pd.DataFrame,
 	:type pen_diag: float
 	:param all_inputs: A lab array, containing all the distinct Input values
 		in the `db` argument.
-	:type all_inputs: lab.array_type
+	:type all_inputs: lab.array.type
 	:return: A dictionary containing the elements 'mean', a pandas DataFrame
 		containing the Input and associated Output of the hyper-posterior's mean
 		parameter, and 'cov', the hyper-posterior's covariance matrix.
