@@ -70,6 +70,7 @@ class TestRtoPyToyExample:
 		pd.testing.assert_frame_equal(df_python_modified.reset_index(drop=True), df_r_modified.reset_index(drop=True))
 		# Reset index because it's a 'str' in R and 'int' in Python
 
+
 class TestSimuDB:
 
 	def test_simu_indiv(self):

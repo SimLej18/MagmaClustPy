@@ -7,6 +7,24 @@ import numpy as np
 import torch
 
 
+class NumpyRandom:
+	"""
+	Class for generating random numbers using NumPy, to be used inside the NumPy backend.
+	Every method call is forwarded to the corresponding np.random function.
+	"""
+
+	def __getattr__(self, name):
+		"""
+		Forward method calls to np.random.
+
+		:param name: The name of the method to call.
+		:type name: str
+
+		:returns: The result of the method call.
+		"""
+		return getattr(np.random, name)
+
+
 class DefaultNumPyLinearAlgebraBackend:
 	"""
 	DefaultNumPyLinearAlgebraBackend provides default implementations for basic
@@ -27,8 +45,8 @@ class DefaultNumPyLinearAlgebraBackend:
 	"""
 
 	array_type = np.ndarray
-	seed = 42
-	np.random.seed(seed)
+	random = NumpyRandom()
+	random.seed(42)
 
 	@staticmethod
 	def range(start, end, step):
@@ -140,7 +158,20 @@ class DefaultNumPyLinearAlgebraBackend:
 		return np.zeros(shape)
 
 	@staticmethod
-	def sum(array, axis=None) -> float:
+	def eye(n) -> np.ndarray:
+		"""
+		Generates an identity matrix using NumPy.
+
+		:param n: The size of the identity matrix.
+		:type n: int
+
+		:returns: An identity matrix of size n.
+		:rtype: numpy.ndarray
+		"""
+		return np.eye(n)
+
+	@staticmethod
+	def sum(array: np.ndarray, axis=None) -> float:
 		"""
 		Computes the sum of an array using NumPy.
 
@@ -155,7 +186,7 @@ class DefaultNumPyLinearAlgebraBackend:
 		return np.sum(array, axis=axis)
 
 	@staticmethod
-	def exp(array) -> np.ndarray:
+	def exp(array: np.ndarray) -> np.ndarray:
 		"""
 		Computes the element-wise exponential of an array using NumPy.
 
@@ -168,7 +199,7 @@ class DefaultNumPyLinearAlgebraBackend:
 		return np.exp(array)
 
 	@staticmethod
-	def dot(a, b) -> float:
+	def dot(a: np.ndarray, b: np.ndarray) -> float:
 		"""
 		Computes the dot product of two arrays using NumPy.
 
@@ -183,7 +214,7 @@ class DefaultNumPyLinearAlgebraBackend:
 		return np.dot(a, b)
 
 	@staticmethod
-	def sort(array) -> np.ndarray:
+	def sort(array: np.ndarray) -> np.ndarray:
 		"""
 		Sorts an array using NumPy.
 
