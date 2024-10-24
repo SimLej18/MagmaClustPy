@@ -1,0 +1,14 @@
+Metadata-Version: 2.1
+Name: MagmaClustPy
+Version: 0.0.1
+Summary: MagmaClustPy
+Author: Simon Lejoly
+Author-email: simon.lejoly@unamur.be
+Keywords: python,first package
+Classifier: Development Status :: 1 - Planning
+Classifier: Intended Audience :: Education
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: Microsoft :: Windows
+
+A Python translation of the MagmaClustR package.

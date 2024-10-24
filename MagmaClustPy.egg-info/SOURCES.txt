@@ -1,0 +1,8 @@
+README.md
+setup.py
+MagmaClustPy/__init__.py
+MagmaClustPy/backend.py
+MagmaClustPy.egg-info/PKG-INFO
+MagmaClustPy.egg-info/SOURCES.txt
+MagmaClustPy.egg-info/dependency_links.txt
+MagmaClustPy.egg-info/top_level.txt
