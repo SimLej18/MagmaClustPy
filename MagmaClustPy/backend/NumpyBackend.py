@@ -1,6 +1,7 @@
 from typing import Tuple
 
 import numpy as np
+from scipy.optimize import minimize
 
 
 class NumpyArray:
@@ -19,6 +20,10 @@ class NumpyArray:
 		:returns: The result of the method call.
 		"""
 		return getattr(np.ndarray, item)
+
+	def __call__(self, *args, **kwargs):
+		# TODO: evaluate if we should use np.array or np.ndarray by default
+		return np.array(*args, **kwargs)
 
 
 class NumpyRandom:
@@ -77,6 +82,11 @@ class NumpyRandom:
 		return getattr(np.random, name)
 
 
+class NumpyOptimiser:
+	def minimise(self, *args, **kwargs):
+		minimize(*args, **kwargs)
+
+
 class NumpyLinearAlgebra:
 	"""
 	Class for mirroring and extending np.linalg
@@ -114,6 +124,7 @@ class DefaultNumPyBackend:
 	random = NumpyRandom()
 	random.seed(42)
 	linalg = NumpyLinearAlgebra()
+	optim = NumpyOptimiser()
 
 	@staticmethod
 	def matmul(a: np.ndarray, b: np.ndarray) -> np.ndarray:

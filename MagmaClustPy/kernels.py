@@ -1,7 +1,5 @@
 import logging
 
-import numpy as np
-
 from MagmaClustPy import lin_alg_backend as lab
 from MagmaClustPy import config
 
@@ -45,11 +43,11 @@ class Kernel:
 		:return: The kernel matrix (n_samples_1, n_samples_2).
 		"""
 		x2 = x2 if x2 is not None else x1
-		K = np.zeros((x1.shape[0], x2.shape[0]))
+		k = lab.zeros((x1.shape[0], x2.shape[0]))
 		for i in range(x1.shape[0]):
 			for j in range(x2.shape[0]):
-				K[i, j] = self.__call__(x1[i], x2[j])
-		return K
+				k[i, j] = self.__call__(x1[i], x2[j])
+		return k
 
 	def inverse_covariance_matrix(self, x, pen_diag=config["pen_diag"]):
 		"""
@@ -58,6 +56,7 @@ class Kernel:
 
 		:param x: Set of inputs (n_samples,). A 1D array.
 		:param pen_diag: A jitter term, added on the diagonal to prevent numerical issues when inverting nearly singular matrices.
+		:param noisy: Whether to add noise to the kernel matrix.
 		:return: The inverse covariance matrix (n_samples, n_samples).
 		"""
 		k = self.compute_matrix(x)
@@ -76,24 +75,27 @@ class SquaredExponentialKernel(Kernel):
 		variance (float): Determines the amplitude of the kernel.
 	"""
 
-	def __init__(self, length_scale=None, variance=None):
+	def __init__(self, length_scale=None, variance=None, noise=None):
 		"""
 		Initialize the kernel with length_scale and variance parameters.
 
 		:param length_scale: Determines how quickly the function decays as points move apart (default: 1.0).
 		:param variance: Determines the amplitude of the kernel (default: 1.0).
 		"""
-		super().__init__(length_scale=length_scale, variance=variance)
+		super().__init__(length_scale=length_scale, variance=variance, noise=noise)
 
 		if length_scale is None:
 			length_scale = lab.random.uniform(self.hp_min, self.hp_max)
 		if variance is None:
 			variance = lab.random.uniform(self.hp_min, self.hp_max)
+		if noise is None:
+			noise = lab.random.uniform(self.noise_min, self.noise_max)
 
 		self.length_scale = length_scale
 		self.variance = variance
+		self.noise = noise
 
-		logging.info(f"SE kernel initialized with length_scale={length_scale} and variance={variance}")
+		logging.info(f"SE kernel initialized with length_scale={length_scale}, variance={variance} and noise={noise}")
 
 	def __call__(self, x1, x2):
 		"""
@@ -103,8 +105,8 @@ class SquaredExponentialKernel(Kernel):
 		:param x2: Second input (can be a scalar or a vector).
 		:return: The kernel value between x1 and x2.
 		"""
-		dist_sq = np.sum((x1 - x2) ** 2)
-		return self.variance * np.exp(-0.5 * dist_sq / self.length_scale ** 2)
+		dist_sq = lab.sum((x1 - x2) ** 2)
+		return self.variance * lab.exp(-0.5 * dist_sq / self.length_scale ** 2)
 
 	def compute_matrix(self, x1, x2=None):
 		"""
@@ -118,14 +120,18 @@ class SquaredExponentialKernel(Kernel):
 		x2 = x2 if x2 is not None else x1
 
 		# Reshape X1 and X2 to 2D arrays (n_samples, 1) to broadcast correctly
-		x1 = x1[:, np.newaxis]  # Shape becomes (n_samples_1, 1)
-		x2 = x2[:, np.newaxis]  # Shape becomes (n_samples_2, 1)
+		x1 = x1[:, lab.newaxis]  # Shape becomes (n_samples_1, 1)
+		x2 = x2[:, lab.newaxis]  # Shape becomes (n_samples_2, 1)
 
 		# Compute pairwise squared Euclidean distances between points in X1 and X2
-		dist_sq = np.sum(x1 ** 2, axis=1)[:, np.newaxis] + np.sum(x2 ** 2, axis=1) - 2 * np.dot(x1, x2.T)
+		dist_sq = lab.sum(x1 ** 2, axis=1)[:, lab.newaxis] + lab.sum(x2 ** 2, axis=1) - 2 * lab.dot(x1, x2.T)
 
 		# Apply the squared exponential kernel function to the distance matrix
-		k = self.variance * np.exp(-0.5 * dist_sq / self.length_scale ** 2)
+		k = self.variance * lab.exp(-0.5 * dist_sq / self.length_scale ** 2)
+
+		# Add noise
+		if self.noise is not None:
+			k += lab.eye(k.shape[0]) * self.noise
 
 		return k
 
@@ -135,24 +141,27 @@ class SquaredExponentialMagmaKernel(Kernel):
 	As of its version 1.2, MagmaClustR doesn't use the standard SE Kernel. It uses a variation given by this formula:
 	k(x, x') = exp(var - exp(-len) * (x - x')^2 * 0.5)
 	"""
-	def __init__(self, length_scale=None, variance=None):
+	def __init__(self, length_scale=None, variance=None, noise=None):
 		"""
 		Initialize the kernel with length_scale and variance parameters.
 
 		:param length_scale: Determines how quickly the function decays as points move apart (default: 1.0).
 		:param variance: Determines the amplitude of the kernel (default: 1.0).
 		"""
-		super().__init__(length_scale=length_scale, variance=variance)
+		super().__init__(length_scale=length_scale, variance=variance, noise=noise)
 
 		if length_scale is None:
 			length_scale = lab.random.uniform(self.hp_min, self.hp_max)
 		if variance is None:
 			variance = lab.random.uniform(self.hp_min, self.hp_max)
+		if noise is None:
+			noise = lab.random.uniform(self.noise_min, self.noise_max)
 
 		self.length_scale = length_scale
 		self.variance = variance
+		self.noise = noise
 
-		logging.info(f"SE kernel initialized with length_scale={length_scale} and variance={variance}")
+		logging.info(f"SE kernel initialized with length_scale={length_scale}, variance={variance} and noise={noise}")
 
 	def __call__(self, x1, x2):
 		"""
@@ -162,5 +171,27 @@ class SquaredExponentialMagmaKernel(Kernel):
 		:param x2: Second input (can be a scalar or a vector).
 		:return: The kernel value between x1 and x2.
 		"""
-		dist_sq = np.sum((x1 - x2) ** 2)
-		return np.exp(self.variance - np.exp(-self.length_scale) * dist_sq * 0.5)
+		dist_sq = lab.sum((x1 - x2) ** 2)
+		return lab.exp(self.variance - lab.exp(-self.length_scale) * dist_sq * 0.5)
+
+	def compute_matrix(self, x1, x2=None):
+		k = super().compute_matrix(x1, x2)
+
+		# Add noise
+		if self.noise is not None and self.noise != 0:
+			# TODO: Understand why the original implem adds the exponential of the noise and not the noise itself
+			k += lab.eye(k.shape[0]) * lab.exp(self.noise)
+
+		return k
+
+	def inverse_covariance_matrix(self, x, pen_diag=config["pen_diag"]):
+		"""
+		Compute the inverse covariance matrix of the kernel for a set of inputs.
+		Equivalent to the `kern_to_inv()` function from MagmaClustR.
+
+		:param x: Set of inputs (n_samples,). A 1D array.
+		:param pen_diag: A jitter term, added on the diagonal to prevent numerical issues when inverting nearly singular matrices.
+		:return: The inverse covariance matrix (n_samples, n_samples).
+		"""
+		k = self.compute_matrix(x)
+		return lab.linalg.inv(k + pen_diag * lab.eye(k.shape[0]))

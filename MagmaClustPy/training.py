@@ -132,6 +132,7 @@ def train_magma(
 
 	# Extract all the distinct Input values
 	all_inputs = data["Input"].unique()  # FIXME: this returns a numpy array whatever the lab backend is
+	all_inputs.sort()  # TODO: remove sort()
 
 	# Initialise prior mean
 	if prior_mean is None:
@@ -167,9 +168,15 @@ def train_magma(
 		i_start_time = time.time()
 
 		# E-step
-		post = e_step(db=data, m_0=prior_mean, kern_0=kern_0, kern_i=kern_i, pen_diag=pen_diag, all_inputs=all_inputs)
+		post_mean, post_cov = e_step(db=data, m_0=prior_mean, kern_0=kern_0, kern_i=kern_i, pen_diag=pen_diag, all_inputs=all_inputs)
 
-		print(post)
+		# Break after E-step if we can compute the fast approximation
+		if fast_approx:
+			# TODO: implement fast approximation
+			raise NotImplementedError("The 'fast_approx' argument is not yet supported.")
+
+		hp_0, hp_i = m_step(db=data, m_0=prior_mean, kern_0=kern_0, kern_i=kern_i, hp_0=hp_0, hp_i=hp_i, post_mean=post_mean, post_cov=post_cov, common_hp=common_hp, pen_diag=pen_diag, all_inputs=all_inputs)
+		print(post_mean, post_cov)
 		# TODO: next steps of the algorithm
 
 
