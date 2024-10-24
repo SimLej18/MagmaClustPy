@@ -11,6 +11,7 @@ class Kernel:
 	Attributes:
 		params (dict): Dictionary of hyperparameters for the kernel.
 	"""
+	# TODO: provide gradient implementation for the kernels, evaluate if that gets faster optimisation in M_step
 	hp_min = 0
 	hp_max = 3
 	noise_min = -5

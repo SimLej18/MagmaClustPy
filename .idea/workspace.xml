@@ -8,14 +8,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[feat] New (much clever) way of handling common API for multiple LinAlg backends">
+    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[feat] first working version of the e_step, and prepared ground for the m_step">
+      <change afterPath="$PROJECT_DIR$/MagmaClustPy/likelihoods.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MagmaClustPy/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MagmaClustPy/backend/NumpyBackend.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/backend/NumpyBackend.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MagmaClustPy/em_magma.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/em_magma.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MagmaClustPy/kernels.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/kernels.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MagmaClustPy/training.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/training.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/debug.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/debug.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -220,7 +218,7 @@
       <workItem from="1728989554246" duration="104000" />
       <workItem from="1728989664592" duration="61119000" />
       <workItem from="1729668928043" duration="23423000" />
-      <workItem from="1729762119452" duration="4407000" />
+      <workItem from="1729762119452" duration="11660000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities">
       <option name="closed" value="true" />
@@ -278,7 +276,15 @@
       <option name="project" value="LOCAL" />
       <updated>1729682101639</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="[feat] first working version of the e_step, and prepared ground for the m_step">
+      <option name="closed" value="true" />
+      <created>1729770795461</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1729770795461</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -292,7 +298,8 @@
     <MESSAGE value="[feat] basic tests for simulate_data.py" />
     <MESSAGE value="[feat](WiP) Start of e_step for magma training&#10;[feat] New kernel inheritance&#10;[feat] New way of handling random in backend" />
     <MESSAGE value="[feat] New (much clever) way of handling common API for multiple LinAlg backends" />
-    <option name="LAST_COMMIT_MESSAGE" value="[feat] New (much clever) way of handling common API for multiple LinAlg backends" />
+    <MESSAGE value="[feat] first working version of the e_step, and prepared ground for the m_step" />
+    <option name="LAST_COMMIT_MESSAGE" value="[feat] first working version of the e_step, and prepared ground for the m_step" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -314,13 +321,28 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/MagmaClustPy/kernels.py</url>
-          <line>62</line>
+          <line>63</line>
           <option name="timeStamp" value="25" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/MagmaClustPy/kernels.py</url>
-          <line>61</line>
+          <line>62</line>
           <option name="timeStamp" value="26" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/MagmaClustPy/em_magma.py</url>
+          <line>149</line>
+          <option name="timeStamp" value="32" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/MagmaClustPy/likelihoods.py</url>
+          <line>140</line>
+          <option name="timeStamp" value="33" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/MagmaClustPy/em_magma.py</url>
+          <line>147</line>
+          <option name="timeStamp" value="39" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -331,6 +353,6 @@
     <SUITE FILE_PATH="coverage/MagmaClustPy$Doc_test.coverage" NAME="Doc test Coverage Results" MODIFIED="1728994491151" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/MagmaClustPy$Build_Package.coverage" NAME="Build Package Coverage Results" MODIFIED="1728992883279" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/MagmaClustPy$MagmaClustPy.coverage" NAME="MagmaClustPy Coverage Results" MODIFIED="1728992726332" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/MagmaClustPy$Debug.coverage" NAME="Debug Coverage Results" MODIFIED="1729768761685" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/MagmaClustPy$Debug.coverage" NAME="Debug Coverage Results" MODIFIED="1729781090266" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

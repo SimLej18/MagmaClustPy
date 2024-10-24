@@ -175,7 +175,7 @@ def train_magma(
 			# TODO: implement fast approximation
 			raise NotImplementedError("The 'fast_approx' argument is not yet supported.")
 
-		hp_0, hp_i = m_step(db=data, m_0=prior_mean, kern_0=kern_0, kern_i=kern_i, hp_0=hp_0, hp_i=hp_i, post_mean=post_mean, post_cov=post_cov, common_hp=common_hp, pen_diag=pen_diag, all_inputs=all_inputs)
+		hp_0, hp_i = m_step(db=data, m_0=prior_mean, kern_0=kern_0, kern_i=kern_i, post_mean=post_mean, post_cov=post_cov, common_hp=common_hp, pen_diag=pen_diag, all_ids=all_ids)
 		print(post_mean, post_cov)
 		# TODO: next steps of the algorithm
 

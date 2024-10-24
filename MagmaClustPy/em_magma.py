@@ -6,6 +6,7 @@ import pandas as pd
 from MagmaClustPy import lin_alg_backend as lab
 from MagmaClustPy import config
 from MagmaClustPy.kernels import Kernel
+from MagmaClustPy.likelihoods import log_likelihood_gp_mod
 
 
 def e_step(db: pd.DataFrame,
@@ -96,18 +97,15 @@ def e_step(db: pd.DataFrame,
 	return post_mean, post_cov
 
 
-# m_step(db=data, m_0=prior_mean, kern_0=kern_0, kern_i=kern_i, hp_0=hp_0, hp_i=hp_i, post_mean=post_mean, post_cov=post_cov, common_hp=common_hp, pen_diag=pen_diag, all_inputs=all_inputs)
 def m_step(db: pd.DataFrame,
 		   m_0: lab.array.type,
 		   kern_0: Kernel,
 		   kern_i: Kernel,
-		   hp_0: lab.array.type,
-		   hp_i: lab.array.type,
 		   post_mean: lab.array.type,
 		   post_cov: lab.array.type,
 		   common_hp: bool = False,
 		   pen_diag: float = config["pen_diag"],
-		   all_inputs: lab.array.type = None) -> Tuple[lab.array.type, lab.array.type]:
+		   all_ids: lab.array.type = None) -> Tuple[lab.array.type, lab.array.type]:
 	"""
 	M-Step of the EM algorithm
 
@@ -123,10 +121,6 @@ def m_step(db: pd.DataFrame,
 	:type kern_0: Callable
 	:param kern_i: A kernel function, associated with the individual GPs.
 	:type kern_i: Callable
-	:param hp_0: A numpy array, corresponding to the hyperparameters of the mean GP.
-	:type hp_0: np.ndarray
-	:param hp_i: A numpy array, corresponding to the hyperparameters of the individual GPs.
-	:type hp_i: np.ndarray
 	:param post_mean: A numpy array, corresponding to the posterior mean of the mean GP.
 	:type post_mean: np.ndarray
 	:param post_cov: A numpy array, corresponding to the posterior covariance of the mean GP.
@@ -137,9 +131,9 @@ def m_step(db: pd.DataFrame,
 	:param pen_diag: A float. A jitter term, added on the diagonal to prevent
 		numerical issues when inverting nearly singular matrices. Default is 1e-10.
 	:type pen_diag: float
-	:param all_inputs: A lab array, containing all the distinct Input values
+	:param all_ids: A lab array, containing all the distinct Input values
 		in the `db` argument.
-	:type all_inputs: lab.array.type
+	:type all_ids: lab.array.type
 	:return: A tuple containing the updated hyperparameters of the mean and individual GPs.
 	:rtype: Tuple[lab.array.type, lab.array.type]
 
@@ -148,7 +142,10 @@ def m_step(db: pd.DataFrame,
 	:examples: TRUE
 	"""
 	# Extract unique inputs
-	if all_inputs is None:
-		all_inputs = db['Input'].unique()
+	if all_ids is None:
+		all_ids = db['Input'].unique()
 
+	log_likelihood_gp_mod(db, m_0.flatten(), kern_0, post_cov, pen_diag)
+
+	print("hey")
 	# TODO: the rest
