@@ -2,10 +2,11 @@ from typing import Tuple
 import logging
 
 import pandas as pd
+from scipy.optimize import minimize
 
 from MagmaClustPy import lin_alg_backend as lab
 from MagmaClustPy import config
-from MagmaClustPy.kernels import Kernel
+from MagmaClustPy.kernels import Kernel, SquaredExponentialMagmaKernel
 from MagmaClustPy.likelihoods import log_likelihood_gp_mod
 
 
@@ -145,7 +146,29 @@ def m_step(db: pd.DataFrame,
 	if all_ids is None:
 		all_ids = db['Input'].unique()
 
-	log_likelihood_gp_mod(db, m_0.flatten(), kern_0, post_cov, pen_diag)
+	# log_likelihood_gp_mod(db, m_0.flatten(), kern_0, post_cov, pen_diag)
+
+	def objective_function(params):
+		"""
+		Objective function to be minimized by SciPy's optimize.minimize().
+		We wrap it here so that scipy can optimise with respect to params even though they are handled as properties of
+		the kernel object.
+		"""
+		from MagmaClustPy.kernels import SquaredExponentialMagmaKernel
+
+		kernel = SquaredExponentialMagmaKernel(*params)
+		return -log_likelihood_gp_mod(db, m_0.flatten(), kernel, post_cov, pen_diag)
+
+	# Optimise hyperparameters of the mean process
+	result = minimize(
+		fun=objective_function,
+		x0=lab.array(list(kern_0.params.values())),
+		method="L-BFGS-B",
+		# TODO: Provide gradient function and see if that accelerates stuff?
+		options={'ftol': 1e-13, 'maxiter': 25}
+	)
+
+	print(result.x)
 
 	print("hey")
 	# TODO: the rest

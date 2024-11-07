@@ -8,7 +8,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[feat](WiP) New likelihood, advancing towards a working M-step" />
+    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[feat](WiP) New likelihood, advancing towards a working M-step">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/em_magma.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/em_magma.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/kernels.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/kernels.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/R_equivalence.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/R_equivalence.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/debug.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/debug.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -24,6 +30,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;SimLej18&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/SimLej18/MagmaClustPy.git&quot;,
+    &quot;accountId&quot;: &quot;11159a2b-2768-415b-99f8-82247083127d&quot;
+  }
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 4
 }</component>
@@ -33,34 +51,37 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python docs.Build Doc.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Doc test.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests for R_equivalence.TestRtoPyToyExample.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests for R_equivalence.test_sum_function_equivalence.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.R Equivalence.executor&quot;: &quot;Run&quot;,
-    &quot;Python.Build Package.executor&quot;: &quot;Run&quot;,
-    &quot;Python.Debug.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.MagmaClustPy.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python docs.Build Doc.executor": "Run",
+    "Python tests.Doc test.executor": "Run",
+    "Python tests.Python tests for R_equivalence.TestLikelihood.executor": "Debug",
+    "Python tests.Python tests for R_equivalence.TestLikelihood.test_value_close.executor": "Debug",
+    "Python tests.Python tests for R_equivalence.TestRtoPyToyExample.executor": "Run",
+    "Python tests.Python tests for R_equivalence.test_sum_function_equivalence.executor": "Run",
+    "Python tests.R Equivalence.executor": "Run",
+    "Python.Build Package.executor": "Run",
+    "Python.Debug.executor": "Debug",
+    "Python.MagmaClustPy.executor": "Run",
+    "Python.sandbox.executor": "Debug",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.Debug">
+  <component name="RunManager" selected="Python tests.Python tests for R_equivalence.TestLikelihood.test_value_close">
     <configuration name="Build Package" type="PythonConfigurationType" factoryName="Python">
       <module name="MagmaClustPy" />
       <option name="ENV_FILES" value="" />
@@ -109,6 +130,29 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="sandbox" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="MagmaClustPy" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tests/sandbox.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="Build Doc" type="docs" factoryName="Sphinx task">
       <module name="MagmaClustPy" />
       <option name="ENV_FILES" value="" />
@@ -125,6 +169,38 @@
       <option name="docutils_params" value="" />
       <option name="docutils_task" value="html" />
       <option name="docutils_open_in_browser" value="false" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for R_equivalence.TestLikelihood" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="MagmaClustPy" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;R_equivalence.TestLikelihood&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for R_equivalence.TestLikelihood.test_value_close" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="MagmaClustPy" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;R_equivalence.TestLikelihood.test_value_close&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
     <configuration name="Python tests for R_equivalence.TestRtoPyToyExample" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
@@ -179,15 +255,21 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.Debug" />
       <item itemvalue="Python.Build Package" />
+      <item itemvalue="Python.Debug" />
+      <item itemvalue="Python.sandbox" />
       <item itemvalue="Python docs.Build Doc" />
       <item itemvalue="Python tests.R Equivalence" />
+      <item itemvalue="Python tests.Python tests for R_equivalence.TestLikelihood" />
+      <item itemvalue="Python tests.Python tests for R_equivalence.TestLikelihood.test_value_close" />
       <item itemvalue="Python tests.Python tests for R_equivalence.TestRtoPyToyExample" />
       <item itemvalue="Python tests.Python tests for R_equivalence.test_sum_function_equivalence" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python tests.Python tests for R_equivalence.TestLikelihood.test_value_close" />
+        <item itemvalue="Python tests.Python tests for R_equivalence.TestLikelihood" />
+        <item itemvalue="Python.sandbox" />
         <item itemvalue="Python tests.Python tests for R_equivalence.TestRtoPyToyExample" />
         <item itemvalue="Python tests.Python tests for R_equivalence.test_sum_function_equivalence" />
       </list>
@@ -213,6 +295,12 @@
       <workItem from="1728989664592" duration="61119000" />
       <workItem from="1729668928043" duration="23423000" />
       <workItem from="1729762119452" duration="12053000" />
+      <workItem from="1730361411509" duration="521000" />
+      <workItem from="1730404637470" duration="12000" />
+      <workItem from="1730801289188" duration="1966000" />
+      <workItem from="1730812538170" duration="117000" />
+      <workItem from="1730812662467" duration="843000" />
+      <workItem from="1730813573381" duration="16250000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities">
       <option name="closed" value="true" />
@@ -325,32 +413,38 @@
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/MagmaClustPy/kernels.py</url>
           <line>63</line>
-          <option name="timeStamp" value="25" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/MagmaClustPy/kernels.py</url>
-          <line>62</line>
           <option name="timeStamp" value="26" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/MagmaClustPy/em_magma.py</url>
-          <line>149</line>
+          <line>172</line>
           <option name="timeStamp" value="32" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/MagmaClustPy/em_magma.py</url>
-          <line>147</line>
-          <option name="timeStamp" value="39" />
+          <url>file://$PROJECT_DIR$/tests/sandbox.py</url>
+          <line>33</line>
+          <option name="timeStamp" value="45" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/tests/R_equivalence.py</url>
+          <line>155</line>
+          <option name="timeStamp" value="46" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/tests/R_equivalence.py</url>
+          <line>151</line>
+          <option name="timeStamp" value="47" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/MagmaClustPy$R_Equivalence.coverage" NAME="R Equivalence Coverage Results" MODIFIED="1729519957083" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
-    <SUITE FILE_PATH="coverage/MagmaClustPy$.coverage" NAME=" Coverage Results" MODIFIED="1729517667035" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/MagmaClustPy$.coverage" NAME=" Coverage Results" MODIFIED="1730971700609" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/MagmaClustPy$Doc_test.coverage" NAME="Doc test Coverage Results" MODIFIED="1728994491151" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/MagmaClustPy$Build_Package.coverage" NAME="Build Package Coverage Results" MODIFIED="1728992883279" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/MagmaClustPy$sandbox.coverage" NAME="sandbox Coverage Results" MODIFIED="1730885534990" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/MagmaClustPy$MagmaClustPy.coverage" NAME="MagmaClustPy Coverage Results" MODIFIED="1728992726332" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/MagmaClustPy$Debug.coverage" NAME="Debug Coverage Results" MODIFIED="1729783885876" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/MagmaClustPy$Debug.coverage" NAME="Debug Coverage Results" MODIFIED="1730884908006" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

@@ -18,9 +18,9 @@ db = pd.DataFrame({
     'Output': [59.81620, 67.13694, 78.32495, 81.83590, 62.04943, 67.31932, 85.94063, 86.76426]
 })
 
-kern_0 = SquaredExponentialKernel(length_scale=0.3, variance=1.0, noise=0)
+kern_0 = SquaredExponentialMagmaKernel(length_scale=0.3, variance=1.0, noise=0)
 kern_0_magma = SquaredExponentialMagmaKernel(length_scale=0.3, variance=1.0, noise=0)
-kern_i = SquaredExponentialKernel(length_scale=0.3, variance=1.0, noise=-2.5)
+kern_i = SquaredExponentialMagmaKernel(length_scale=0.3, variance=1.0, noise=-2.5)
 kern_i_magma = SquaredExponentialMagmaKernel(length_scale=0.3, variance=1.0, noise=-2.5)
 
 train_magma(db, kern_0=kern_0_magma, kern_i=kern_i_magma)

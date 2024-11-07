@@ -9,7 +9,7 @@ class Kernel:
 	Kernel interface for defining custom kernels.
 
 	Attributes:
-		params (dict): Dictionary of hyperparameters for the kernel.
+		param_names (dict): Dictionary of hyperparameters for the kernel.
 	"""
 	# TODO: provide gradient implementation for the kernels, evaluate if that gets faster optimisation in M_step
 	hp_min = 0
@@ -23,7 +23,8 @@ class Kernel:
 
 		:param params: Hyperparameters for the kernel.
 		"""
-		self.params = params.keys()
+		self.param_names = params.keys()
+		self.params = params
 
 	def __call__(self, x1: float, x2: float) -> float:
 		"""
@@ -47,7 +48,7 @@ class Kernel:
 		k = lab.zeros((x1.shape[0], x2.shape[0]))
 		for i in range(x1.shape[0]):
 			for j in range(x2.shape[0]):
-				k[i, j] = self.__call__(x1[i], x2[j])
+				k[i, j] = self(x1[i], x2[j])
 		return k
 
 	def inverse_covariance_matrix(self, x, pen_diag=config["pen_diag"]):
@@ -196,3 +197,8 @@ class SquaredExponentialMagmaKernel(Kernel):
 		"""
 		k = self.compute_matrix(x)
 		return lab.linalg.inv(k + pen_diag * lab.eye(k.shape[0]))
+
+	@staticmethod
+	def static_compute_matrix(x1, x2, length_scale, variance, noise):
+		tmp_kern = SquaredExponentialKernel(length_scale=length_scale, variance=variance, noise=noise)
+		return tmp_kern.compute_matrix(x1, x2)

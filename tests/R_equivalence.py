@@ -1,9 +1,12 @@
 import pandas as pd
 import numpy as np
-from rpy2.robjects import FloatVector, r, pandas2ri
+from rpy2.robjects import FloatVector, ListVector, StrVector, r, pandas2ri
 from rpy2.robjects.packages import importr
 
 from MagmaClustPy import simulate_data
+from MagmaClustPy.kernels import SquaredExponentialMagmaKernel
+from MagmaClustPy.em_magma import e_step
+from MagmaClustPy.likelihoods import log_likelihood_gp_mod
 
 # Activate pandas <-> R conversion
 pandas2ri.activate()
@@ -106,3 +109,48 @@ class TestSimuDB:
 
 		# Dataframes have the same columns
 		assert py_version.columns.equals(r_version.columns)
+
+
+class TestLikelihood:
+	def test_value_close(self):
+		for _ in range(10):
+			test_length_scale = np.random.uniform(0, 3)
+			test_variance = np.random.uniform(0, 3)
+			test_noise = np.random.uniform(-5, -1)
+
+			pen_diag = 1e-10
+
+			# inputs
+			db = pd.DataFrame({
+				'ID': [1, 1, 1, 1, 2, 2, 2, 2],
+				'Input': [0.40, 4.45, 7.60, 8.30, 3.50, 5.10, 8.85, 9.35],
+				'Output': [59.81620, 67.13694, 78.32495, 81.83590, 62.04943, 67.31932, 85.94063, 86.76426]
+			})
+
+			# Py versions
+			mean = np.zeros(len(db))
+			kern = SquaredExponentialMagmaKernel(length_scale=test_length_scale, variance=test_variance, noise=test_noise)
+			post_mean, post_cov = e_step(db=db, m_0=mean, kern_0=kern, kern_i=kern, pen_diag=pen_diag,
+			                             all_inputs=db['Input'].unique())
+
+			pen_diag = 1e-10
+
+			# R versions
+			# r_hp is a named vector corresponding to a dictionnary of form: {"se_length_scale": test_length_scale, "se_variance": test_variance, "se_noise": test_noise}
+			r_hp = ListVector({
+			    "se_length_scale": test_length_scale,
+			    "se_variance": test_variance,
+			    "se_noise": test_noise
+			})
+			r_db = tibble.tibble(db)
+			r_mean = FloatVector(mean)
+			r_kern = StrVector(["SE"])
+			r_post_cov = FloatVector(post_cov)
+
+			# Call functions
+			py_version = log_likelihood_gp_mod(db, mean, kern, post_cov, pen_diag)
+			r_version = magmaclust.logL_GP_mod(r_hp, r_db, r_mean, r_kern, r_post_cov, pen_diag)[0]
+
+			# Assert that the values are close
+			print(py_version, r_version)
+			assert np.isclose(py_version, r_version, atol=1e-5)
