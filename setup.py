@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.0.1'
+VERSION = '0.2.0'
 DESCRIPTION = 'MagmaClustPy'
 LONG_DESCRIPTION = 'A Python translation of the MagmaClustR package.'
 
@@ -21,5 +21,6 @@ setup(
         "Programming Language :: Python :: 3",
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX :: Linux",
     ]
 )
