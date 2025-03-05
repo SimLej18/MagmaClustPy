@@ -8,8 +8,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[chore] git thingies">
-      <change beforePath="$PROJECT_DIR$/benchmarks/kernels.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/kernels.ipynb" afterDir="false" />
+    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[enhanc](PoC) better kwargs management in kernels demonstrated">
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/kernels/AbstractKernel.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/kernels/AbstractKernel.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -338,7 +338,7 @@
       <workItem from="1740585974383" duration="7700000" />
       <workItem from="1741016065263" duration="724000" />
       <workItem from="1741019081967" duration="27011000" />
-      <workItem from="1741176925241" duration="735000" />
+      <workItem from="1741176925241" duration="1519000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities">
       <option name="closed" value="true" />
@@ -444,7 +444,15 @@
       <option name="project" value="LOCAL" />
       <updated>1741176989306</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="[enhanc](PoC) better kwargs management in kernels demonstrated">
+      <option name="closed" value="true" />
+      <created>1741178372961</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1741178372961</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -475,7 +483,8 @@
     <MESSAGE value="[feat] new faster jitted kernels" />
     <MESSAGE value="[feat] new jitted SEMagmaKernel, passed all tests" />
     <MESSAGE value="[chore] git thingies" />
-    <option name="LAST_COMMIT_MESSAGE" value="[chore] git thingies" />
+    <MESSAGE value="[enhanc](PoC) better kwargs management in kernels demonstrated" />
+    <option name="LAST_COMMIT_MESSAGE" value="[enhanc](PoC) better kwargs management in kernels demonstrated" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

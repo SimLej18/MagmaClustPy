@@ -32,19 +32,18 @@ class AbstractKernel:
 
 		# Check kwargs
 		kwargs = self.check_kwargs(**kwargs)
-		args = kwargs.values()
 
 		# Call the appropriate method
 		if jnp.isscalar(x1) and jnp.isscalar(x2):
-			return self.compute_scalar(x1, x2, *args)
+			return self.compute_scalar(x1, x2, **kwargs)
 		elif jnp.ndim(x1) == 1 and jnp.isscalar(x2):
-			return self.compute_vector(x1, x2, *args)
+			return self.compute_vector(x1, x2, **kwargs)
 		elif jnp.isscalar(x1) and jnp.ndim(x2) == 1:
-			return self.compute_vector(x2, x1, *args)
+			return self.compute_vector(x2, x1, **kwargs)
 		elif jnp.ndim(x1) == 1 and jnp.ndim(x2) == 1:
-			return self.compute_matrix(x1, x2, *args)
+			return self.compute_matrix(x1, x2, **kwargs)
 		elif jnp.ndim(x1) == 2 and jnp.ndim(x2) == 2:
-			return self.compute_batch(x1, x2, *args)
+			return self.compute_batch(x1, x2, **kwargs)
 		else:
 			return jnp.nan
 
@@ -61,7 +60,7 @@ class AbstractKernel:
 		return cls(*children)
 
 	@jit
-	def compute_scalar(self, x1: jnp.ndarray, x2: jnp.ndarray, *args) -> jnp.ndarray:
+	def compute_scalar(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
 		"""
 		Compute the kernel covariance value between two scalar arrays.
 
@@ -70,10 +69,10 @@ class AbstractKernel:
 		:param args: hyperparameters of the kernel
 		:return: scalar array
 		"""
-		return jnp.array(jnp.nan)  # To be overwritten
+		return jnp.array(jnp.nan)  # To be overwritten in subclasses
 
 	@jit
-	def compute_vector(self, x1: jnp.ndarray, x2: jnp.ndarray, *args) -> jnp.ndarray:
+	def compute_vector(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
 		"""
 		Compute the kernel covariance value between a vector and a scalar.
 
@@ -82,11 +81,10 @@ class AbstractKernel:
 		:param args: hyperparameters of the kernel
 		:return: vector array (N, )
 		"""
-		# return vmap(lambda x: self.compute_scalar(x, x2, **kwargs), in_axes=0)(x1)
-		return vmap(self.compute_scalar, in_axes=(0, None) + (None,) * len(args))(x1, x2, *args).squeeze()
+		return vmap(lambda x: self.compute_scalar(x, x2, **kwargs), in_axes=0)(x1)
 
 	@jit
-	def compute_matrix(self, x1: jnp.ndarray, x2: jnp.ndarray, *args) -> jnp.ndarray:
+	def compute_matrix(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
 		"""
 		Compute the kernel covariance matrix between two vector arrays.
 
@@ -95,11 +93,10 @@ class AbstractKernel:
 		:param args: hyperparameters of the kernel
 		:return: matrix array (N, M)
 		"""
-		# vmap(lambda x: self.compute_vector(x, x2, **kwargs), in_axes=0)(x1)
-		return vmap(self.compute_vector, in_axes=(None, 0) + (None,) * len(args))(x2, x1, *args)
+		return vmap(lambda x: self.compute_vector(x2, x, **kwargs), in_axes=0)(x1)
 
 	@jit
-	def compute_batch(self, x1: jnp.ndarray, x2: jnp.ndarray, *args) -> jnp.ndarray:
+	def compute_batch(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
 		"""
 		Compute the kernel covariance matrix between two batched vector arrays.
 
@@ -110,15 +107,8 @@ class AbstractKernel:
 		:return: tensor array (B, N, M)
 		"""
 		# vmap(self.compute_matrix)(x1, x2, **kwargs)
-		args_axes = tuple(None if jnp.isscalar(hp) else 0 for hp in args)
+		common_hps = {key: value for key, value in kwargs.items() if jnp.isscalar(value)}
+		distinct_hps = {key: value for key, value in kwargs.items() if not jnp.isscalar(value)}
 
-		return vmap(self.compute_matrix, in_axes=(0, 0) + args_axes)(x1, x2, *args)
-
-
-# TODO: check vmap along kwargs
-# To make vmap work, we convert kwargs to args in this implementation
-# This leads to potential bugs where the order of the kwargs is not respected, either in provided params or in the class
-# definition.
-# Alternative is tu use a "lambda" version of each compute_* method, with kwargs as a parameter, and then vmap this
-# lambda function, as presented in comments. However, this may lead to jit compiling many times the same function,
-# which is not optimal. I'm not sure if this is the case, so we should check.
+		return vmap(lambda x, y, hps: self.compute_matrix(x, y, **hps, **common_hps), in_axes=(0, 0, 0))(x1, x2,
+		                                                                                                 distinct_hps)
