@@ -66,7 +66,7 @@ class AbstractKernel:
 
 		:param x1: scalar array
 		:param x2: scalar array
-		:param args: hyperparameters of the kernel
+		:param kwargs: hyperparameters of the kernel
 		:return: scalar array
 		"""
 		return jnp.array(jnp.nan)  # To be overwritten in subclasses
@@ -78,7 +78,7 @@ class AbstractKernel:
 
 		:param x1: vector array (N, )
 		:param x2: scalar array
-		:param args: hyperparameters of the kernel
+		:param kwargs: hyperparameters of the kernel
 		:return: vector array (N, )
 		"""
 		return vmap(lambda x: self.compute_scalar(x, x2, **kwargs), in_axes=0)(x1)
@@ -90,7 +90,7 @@ class AbstractKernel:
 
 		:param x1: vector array (N, )
 		:param x2: vector array (M, )
-		:param args: hyperparameters of the kernel
+		:param kwargs: hyperparameters of the kernel
 		:return: matrix array (N, M)
 		"""
 		return vmap(lambda x: self.compute_vector(x2, x, **kwargs), in_axes=0)(x1)
@@ -102,7 +102,7 @@ class AbstractKernel:
 
 		:param x1: vector array (B, N)
 		:param x2: vector array (B, M)
-		:param args: hyperparameters of the kernel. Each HP that is a scalar will be common to the whole batch, and
+		:param kwargs: hyperparameters of the kernel. Each HP that is a scalar will be common to the whole batch, and
 		each HP that is a vector will be distinct and thus must have shape (B, )
 		:return: tensor array (B, N, M)
 		"""

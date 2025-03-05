@@ -6,7 +6,7 @@ from MagmaClustPy.kernels import AbstractKernel
 
 
 @register_pytree_node_class
-class NewSEMagmaKernel(AbstractKernel):
+class SEMagmaKernel(AbstractKernel):
 	def __init__(self, length_scale=None, variance=None):
 		if length_scale is None:
 			length_scale = jnp.array([1.])
