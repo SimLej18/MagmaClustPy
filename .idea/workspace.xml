@@ -8,48 +8,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[feat](WiP) Struggling on m-step and likelihood testing">
-      <change afterPath="$PROJECT_DIR$/MagmaClustPy/prediction.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/MagmaFromScratch/E_step.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/MagmaFromScratch/KernelSandbox.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/MagmaFromScratch/Legacy.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/MagmaFromScratch/M_step.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/MagmaFromScratch/Prediction.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/MagmaFromScratch/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/MagmaFromScratch/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/MagmaFromScratch/em_magma.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/MagmaFromScratch/new_kernels.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/Benchmark.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/FastKernels.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/Inv&amp;Padding.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/Inv&amp;Solve.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/Jit.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/MaximumLikelihoodComparison.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/MaximumLikelihoodEstimation.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/SparseMatricesInversion.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/dummy_datasets/custom_common_input_common_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/dummy_datasets/custom_common_input_distinct_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/dummy_datasets/custom_distinct_input_common_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/dummy_datasets/custom_distinct_input_distinct_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/dummy_datasets/large_common_input_common_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/dummy_datasets/large_common_input_distinct_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/dummy_datasets/large_distinct_input_common_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/dummy_datasets/large_distinct_input_distinct_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/dummy_datasets/medium_common_input_common_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/dummy_datasets/medium_common_input_distinct_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/dummy_datasets/medium_distinct_input_common_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/dummy_datasets/medium_distinct_input_distinct_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/dummy_datasets/small_common_input_common_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/dummy_datasets/small_common_input_distinct_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/dummy_datasets/small_distinct_input_common_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/dummy_datasets/small_distinct_input_distinct_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/benchmarks/new_kernels.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/MagmaClustPy.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/MagmaClustPy.iml" afterDir="false" />
+    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[feat] new jitted SEMagmaKernel, passed all tests">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MagmaClustPy/em_magma.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/em_magma.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/R_equivalence.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/R_equivalence.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -123,7 +84,7 @@
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.fonts.default&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -325,19 +286,19 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.sandbox" />
-        <item itemvalue="Python tests.Python tests for R_equivalence.TestLikelihood" />
-        <item itemvalue="Python tests.Python tests for R_equivalence.TestLikelihood.test_value_close" />
-        <item itemvalue="Python tests.Python tests for R_equivalence.TestRtoPyToyExample" />
         <item itemvalue="Python tests.Python tests for R_equivalence.test_sum_function_equivalence" />
+        <item itemvalue="Python tests.Python tests for R_equivalence.TestRtoPyToyExample" />
+        <item itemvalue="Python tests.Python tests for R_equivalence.TestLikelihood.test_value_close" />
+        <item itemvalue="Python tests.Python tests for R_equivalence.TestLikelihood" />
+        <item itemvalue="Python.sandbox" />
       </list>
     </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-76f8388c3a79-JavaScript-PY-243.24978.54" />
-        <option value="bundled-python-sdk-91e3b7efe1d4-466328ff949b-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-243.24978.54" />
+        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-PY-243.25659.43" />
+        <option value="bundled-python-sdk-181015f7ab06-4df51de95216-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-243.25659.43" />
       </set>
     </attachedChunks>
   </component>
@@ -376,6 +337,9 @@
       <workItem from="1740409644785" duration="9612000" />
       <workItem from="1740427410715" duration="42536000" />
       <workItem from="1740585974383" duration="7700000" />
+      <workItem from="1741016065263" duration="724000" />
+      <workItem from="1741019081967" duration="27011000" />
+      <workItem from="1741176925241" duration="36000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities">
       <option name="closed" value="true" />
@@ -457,11 +421,38 @@
       <option name="project" value="LOCAL" />
       <updated>1730972276363</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="[feat] new faster jitted kernels">
+      <option name="closed" value="true" />
+      <created>1741171689659</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1741171689659</updated>
+    </task>
+    <task id="LOCAL-00012" summary="[feat] new jitted SEMagmaKernel, passed all tests">
+      <option name="closed" value="true" />
+      <created>1741176662468</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1741176662468</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities" />
@@ -474,7 +465,9 @@
     <MESSAGE value="[feat] first working version of the e_step, and prepared ground for the m_step" />
     <MESSAGE value="[feat](WiP) New likelihood, advancing towards a working M-step" />
     <MESSAGE value="[feat](WiP) Struggling on m-step and likelihood testing" />
-    <option name="LAST_COMMIT_MESSAGE" value="[feat](WiP) Struggling on m-step and likelihood testing" />
+    <MESSAGE value="[feat] new faster jitted kernels" />
+    <MESSAGE value="[feat] new jitted SEMagmaKernel, passed all tests" />
+    <option name="LAST_COMMIT_MESSAGE" value="[feat] new jitted SEMagmaKernel, passed all tests" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
