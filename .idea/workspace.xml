@@ -8,9 +8,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[chore] code cleaning">
-      <change afterPath="$PROJECT_DIR$/benchmarks/preprocess_db.ipynb" afterDir="false" />
+    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[feat] new preprocess_db function with padding">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/kernels.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/kernels.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/preprocess_db.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/preprocess_db.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,8 +22,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="Jupyter Notebook" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -339,7 +341,7 @@
       <workItem from="1740585974383" duration="7700000" />
       <workItem from="1741016065263" duration="724000" />
       <workItem from="1741019081967" duration="27011000" />
-      <workItem from="1741176925241" duration="6667000" />
+      <workItem from="1741176925241" duration="10604000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities">
       <option name="closed" value="true" />
@@ -469,7 +471,15 @@
       <option name="project" value="LOCAL" />
       <updated>1741178626457</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="[feat] new preprocess_db function with padding">
+      <option name="closed" value="true" />
+      <created>1741186903290</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1741186903290</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -503,7 +513,8 @@
     <MESSAGE value="[enhanc](PoC) better kwargs management in kernels demonstrated" />
     <MESSAGE value="[enhanc] changed default implem of AbstractKernel to the enhanced version with better kwargs handling" />
     <MESSAGE value="[chore] code cleaning" />
-    <option name="LAST_COMMIT_MESSAGE" value="[chore] code cleaning" />
+    <MESSAGE value="[feat] new preprocess_db function with padding" />
+    <option name="LAST_COMMIT_MESSAGE" value="[feat] new preprocess_db function with padding" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
