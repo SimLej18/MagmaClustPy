@@ -8,9 +8,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[enhanc] changed default implem of AbstractKernel to the enhanced version with better kwargs handling">
-      <change beforePath="$PROJECT_DIR$/MagmaClustPy/kernels/SEMagmaKernel.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/kernels/SEMagmaKernel.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MagmaClustPy/kernels/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/kernels/__init__.py" afterDir="false" />
+    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[chore] code cleaning">
+      <change afterPath="$PROJECT_DIR$/benchmarks/preprocess_db.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,8 +20,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Jupyter Notebook" />
         <option value="Python Script" />
+        <option value="Jupyter Notebook" />
       </list>
     </option>
   </component>
@@ -339,7 +339,7 @@
       <workItem from="1740585974383" duration="7700000" />
       <workItem from="1741016065263" duration="724000" />
       <workItem from="1741019081967" duration="27011000" />
-      <workItem from="1741176925241" duration="1612000" />
+      <workItem from="1741176925241" duration="6667000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities">
       <option name="closed" value="true" />
@@ -461,7 +461,15 @@
       <option name="project" value="LOCAL" />
       <updated>1741178504684</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="[chore] code cleaning">
+      <option name="closed" value="true" />
+      <created>1741178626457</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1741178626457</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -494,7 +502,8 @@
     <MESSAGE value="[chore] git thingies" />
     <MESSAGE value="[enhanc](PoC) better kwargs management in kernels demonstrated" />
     <MESSAGE value="[enhanc] changed default implem of AbstractKernel to the enhanced version with better kwargs handling" />
-    <option name="LAST_COMMIT_MESSAGE" value="[enhanc] changed default implem of AbstractKernel to the enhanced version with better kwargs handling" />
+    <MESSAGE value="[chore] code cleaning" />
+    <option name="LAST_COMMIT_MESSAGE" value="[chore] code cleaning" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
