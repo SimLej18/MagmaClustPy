@@ -8,26 +8,25 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[enhanc] improvements in efficiency for kernels on padded and aligned inputs">
-      <change afterPath="$PROJECT_DIR$/MagmaClustPy/hyperpost.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/custom_common_input_common_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/custom_common_input_distinct_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/custom_distinct_input_common_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/custom_distinct_input_distinct_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/large_common_input_common_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/large_common_input_distinct_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/large_distinct_input_common_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/large_distinct_input_distinct_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/medium_common_input_common_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/medium_common_input_distinct_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/medium_distinct_input_common_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/medium_distinct_input_distinct_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/small_common_input_common_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/small_common_input_distinct_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/small_distinct_input_common_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/small_distinct_input_distinct_hp.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/hyperpost.ipynb" afterDir="false" />
+    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[feat] new and improved hyperpost for e-step and predictions. grid and padded inputs are now supported, and useless vmap where removed.&#10;[feat] new dummy datasets for benchmarking">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/custom_common_input_common_hp.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/custom_common_input_distinct_hp.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/custom_distinct_input_common_hp.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/custom_distinct_input_distinct_hp.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/large_common_input_common_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/large_common_input_common_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/large_common_input_distinct_hp.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/large_distinct_input_common_hp.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/large_distinct_input_distinct_hp.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/medium_common_input_common_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/medium_common_input_common_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/medium_common_input_distinct_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/medium_common_input_distinct_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/medium_distinct_input_common_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/medium_distinct_input_common_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/medium_distinct_input_distinct_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/medium_distinct_input_distinct_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/small_common_input_common_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/small_common_input_common_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/small_common_input_distinct_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/small_common_input_distinct_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/small_distinct_input_common_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/small_distinct_input_common_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/small_distinct_input_distinct_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/dummy_datasets/small_distinct_input_distinct_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/hyperpost.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/hyperpost.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -358,7 +357,7 @@
       <workItem from="1741016065263" duration="724000" />
       <workItem from="1741019081967" duration="27011000" />
       <workItem from="1741176925241" duration="15636000" />
-      <workItem from="1741271910837" duration="28507000" />
+      <workItem from="1741271910837" duration="31622000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities">
       <option name="closed" value="true" />
@@ -512,7 +511,15 @@
       <option name="project" value="LOCAL" />
       <updated>1741598876484</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="[feat] new and improved hyperpost for e-step and predictions. grid and padded inputs are now supported, and useless vmap where removed.&#10;[feat] new dummy datasets for benchmarking">
+      <option name="closed" value="true" />
+      <created>1741616774073</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1741616774073</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -549,7 +556,8 @@
     <MESSAGE value="[feat] new preprocess_db function with padding" />
     <MESSAGE value="[fix] bug with generated dummy datasets dimensions&#10;[enhanc] benchmarking of kernels (in)efficiency on padded inputs" />
     <MESSAGE value="[enhanc] improvements in efficiency for kernels on padded and aligned inputs" />
-    <option name="LAST_COMMIT_MESSAGE" value="[enhanc] improvements in efficiency for kernels on padded and aligned inputs" />
+    <MESSAGE value="[feat] new and improved hyperpost for e-step and predictions. grid and padded inputs are now supported, and useless vmap where removed.&#10;[feat] new dummy datasets for benchmarking" />
+    <option name="LAST_COMMIT_MESSAGE" value="[feat] new and improved hyperpost for e-step and predictions. grid and padded inputs are now supported, and useless vmap where removed.&#10;[feat] new dummy datasets for benchmarking" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
