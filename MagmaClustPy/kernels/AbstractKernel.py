@@ -1,4 +1,4 @@
-from jax import jit, vmap
+from jax import jit, vmap, lax
 from jax import numpy as jnp
 from jax.tree_util import register_pytree_node_class
 
@@ -35,11 +35,11 @@ class AbstractKernel:
 
 		# Call the appropriate method
 		if jnp.isscalar(x1) and jnp.isscalar(x2):
-			return self.compute_scalar(x1, x2, **kwargs)
+			return self.compute_scalar_if_not_nan(x1, x2, **kwargs)
 		elif jnp.ndim(x1) == 1 and jnp.isscalar(x2):
-			return self.compute_vector(x1, x2, **kwargs)
+			return self.compute_vector_if_not_nan(x1, x2, **kwargs)
 		elif jnp.isscalar(x1) and jnp.ndim(x2) == 1:
-			return self.compute_vector(x2, x1, **kwargs)
+			return self.compute_vector_if_not_nan(x2, x1, **kwargs)
 		elif jnp.ndim(x1) == 1 and jnp.ndim(x2) == 1:
 			return self.compute_matrix(x1, x2, **kwargs)
 		elif jnp.ndim(x1) == 2 and jnp.ndim(x2) == 2:
@@ -58,6 +58,19 @@ class AbstractKernel:
 		# On a subclass, this will work as expected as long as the constructor has a clear number of
 		# kwargs as parameters.
 		return cls(*children)
+
+	@jit
+	def compute_scalar_if_not_nan(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
+		"""
+		Returns NaN if either x1 or x2 is NaN, otherwise calls the compute_scalar method.
+
+		:param x1: scalar array
+		:param x2: scalar array
+		:param kwargs: hyperparameters of the kernel
+		:return: scalar array
+		"""
+		return lax.cond(jnp.isnan(x1) | jnp.isnan(x2), lambda _: jnp.nan,
+		                lambda _: self.compute_scalar(x1, x2, **kwargs), None)
 
 	@jit
 	def compute_scalar(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
@@ -81,7 +94,20 @@ class AbstractKernel:
 		:param kwargs: hyperparameters of the kernel
 		:return: vector array (N, )
 		"""
-		return vmap(lambda x: self.compute_scalar(x, x2, **kwargs), in_axes=0)(x1)
+		return vmap(lambda x: self.compute_scalar_if_not_nan(x, x2, **kwargs), in_axes=0)(x1)
+
+	@jit
+	def compute_vector_if_not_nan(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
+		"""
+		Returns an array of NaN if scalar is NaN, otherwise calls the compute_vector method.
+
+		:param x1: vector array (N, )
+		:param x2: scalar array
+		:param kwargs: hyperparameters of the kernel
+		:return: vector array (N, )
+		"""
+		return lax.cond(jnp.any(jnp.isnan(x2)), lambda _: x1 * jnp.nan, lambda _: self.compute_vector(x1, x2, **kwargs),
+		                None)
 
 	@jit
 	def compute_matrix(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
@@ -93,7 +119,7 @@ class AbstractKernel:
 		:param kwargs: hyperparameters of the kernel
 		:return: matrix array (N, M)
 		"""
-		return vmap(lambda x: self.compute_vector(x2, x, **kwargs), in_axes=0)(x1)
+		return vmap(lambda x: self.compute_vector_if_not_nan(x2, x, **kwargs), in_axes=0)(x1)
 
 	@jit
 	def compute_batch(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
