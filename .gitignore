@@ -1,6 +1,9 @@
 
 .DS_Store
-.idea
+.idea/
 /CLAUDE.md
 /.idea/codeStyles/codeStyleConfig.xml
 /.idea/workspace.xml
+*.pyc
+/.idea
+.idea/workspace.xml
