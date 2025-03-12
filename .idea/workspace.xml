@@ -8,13 +8,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[enhanc] new hyperpost tests and benchmarks, one for each scenario.">
-      <change afterPath="$PROJECT_DIR$/MagmaClustPy/hp_optimisation.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/benchmarks/hp_optimisation.ipynb" afterDir="false" />
+    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[fix] bug with hyperpost on common inputs but distinct hp">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MagmaClustPy/kernels/AbstractKernel.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/kernels/AbstractKernel.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/benchmarks/template.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/template.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/hp_optimisation.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/hp_optimisation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/hp_optimisation.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/hp_optimisation.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/hyperpost.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/hyperpost.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,8 +22,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="Jupyter Notebook" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -95,6 +93,7 @@
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/benchmarks" />
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/tests/benchmarks" />
       <recent name="$PROJECT_DIR$/tests" />
     </key>
@@ -347,7 +346,7 @@
       <workItem from="1741176925241" duration="15636000" />
       <workItem from="1741271910837" duration="36288000" />
       <workItem from="1741682604948" duration="19633000" />
-      <workItem from="1741764307984" duration="7141000" />
+      <workItem from="1741764307984" duration="14933000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities">
       <option name="closed" value="true" />
@@ -517,7 +516,31 @@
       <option name="project" value="LOCAL" />
       <updated>1741620918406</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="[feat](WiP) HP optimisation should work fine, benchmark still to do">
+      <option name="closed" value="true" />
+      <created>1741774483241</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1741774483241</updated>
+    </task>
+    <task id="LOCAL-00023" summary="[fix] datasets with common_input now really have common inputs&#10;[feat] new &quot;large&quot; dataset dimension. &quot;huge&quot; dataset size replaces past &quot;large&quot;">
+      <option name="closed" value="true" />
+      <created>1741777568694</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1741777568694</updated>
+    </task>
+    <task id="LOCAL-00024" summary="[fix] bug with hyperpost on common inputs but distinct hp">
+      <option name="closed" value="true" />
+      <created>1741784875104</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1741784875104</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -556,7 +579,10 @@
     <MESSAGE value="[enhanc] improvements in efficiency for kernels on padded and aligned inputs" />
     <MESSAGE value="[feat] new and improved hyperpost for e-step and predictions. grid and padded inputs are now supported, and useless vmap where removed.&#10;[feat] new dummy datasets for benchmarking" />
     <MESSAGE value="[enhanc] new hyperpost tests and benchmarks, one for each scenario." />
-    <option name="LAST_COMMIT_MESSAGE" value="[enhanc] new hyperpost tests and benchmarks, one for each scenario." />
+    <MESSAGE value="[feat](WiP) HP optimisation should work fine, benchmark still to do" />
+    <MESSAGE value="[fix] datasets with common_input now really have common inputs&#10;[feat] new &quot;large&quot; dataset dimension. &quot;huge&quot; dataset size replaces past &quot;large&quot;" />
+    <MESSAGE value="[fix] bug with hyperpost on common inputs but distinct hp" />
+    <option name="LAST_COMMIT_MESSAGE" value="[fix] bug with hyperpost on common inputs but distinct hp" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -610,6 +636,31 @@
           <url>file://$PROJECT_DIR$/tests/sandbox.py</url>
           <line>25</line>
           <option name="timeStamp" value="51" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/MagmaClustPy/hyperpost.py</url>
+          <line>42</line>
+          <option name="timeStamp" value="53" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/MagmaClustPy/hyperpost.py</url>
+          <line>44</line>
+          <option name="timeStamp" value="54" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/MagmaClustPy/hyperpost.py</url>
+          <line>55</line>
+          <option name="timeStamp" value="55" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/MagmaClustPy/hyperpost.py</url>
+          <line>57</line>
+          <option name="timeStamp" value="56" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/MagmaClustPy/hyperpost.py</url>
+          <line>62</line>
+          <option name="timeStamp" value="57" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
