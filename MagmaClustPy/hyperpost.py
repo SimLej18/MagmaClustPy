@@ -47,8 +47,10 @@ def hyperpost_common_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov
 	if inputs_to_grid is not None:
 		task_cov_inv = jnp.zeros_like(mean_cov_inv).at[jnp.ix_(inputs_to_grid, inputs_to_grid)].set(task_cov_inv)
 
+	task_cov_inv = task_cov_inv.sum(axis=0)
+
 	post_cov_inv, _ = cho_factor(mean_cov_inv + task_cov_inv)
-	post_cov = cho_solve((post_cov_inv, False), eye)
+	post_cov = cho_solve((post_cov_inv, False), eye[0])
 
 	# Compute posterior mean
 	weighted_prior_mean = cho_solve((mean_cov_u, False), prior_mean)
