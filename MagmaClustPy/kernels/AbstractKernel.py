@@ -17,6 +17,12 @@ class AbstractKernel:
 		# Register hyperparameters in *kwargs* as instance attributes
 		self.__dict__.update(kwargs)
 
+	def __str__(self):
+		return f"{self.__class__.__name__}({', '.join([f'{key}={value}' for key, value in self.__dict__.items()])})"
+
+	def __repr__(self):
+		return str(self)
+
 	@jit
 	def check_kwargs(self, **kwargs):
 		for key in self.__dict__:

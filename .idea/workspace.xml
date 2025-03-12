@@ -9,7 +9,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[enhanc] new hyperpost tests and benchmarks, one for each scenario.">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/MagmaClustPy/hp_optimisation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/benchmarks/hp_optimisation.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/kernels/AbstractKernel.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/kernels/AbstractKernel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/template.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/template.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -19,8 +24,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Jupyter Notebook" />
         <option value="Python Script" />
+        <option value="Jupyter Notebook" />
       </list>
     </option>
   </component>
@@ -59,34 +64,34 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python docs.Build Doc.executor": "Run",
-    "Python tests.Doc test.executor": "Run",
-    "Python tests.Python tests for R_equivalence.TestLikelihood.executor": "Debug",
-    "Python tests.Python tests for R_equivalence.TestLikelihood.test_value_close.executor": "Debug",
-    "Python tests.Python tests for R_equivalence.TestRtoPyToyExample.executor": "Run",
-    "Python tests.Python tests for R_equivalence.test_sum_function_equivalence.executor": "Run",
-    "Python tests.R Equivalence.executor": "Debug",
-    "Python.Build Package.executor": "Run",
-    "Python.Debug.executor": "Debug",
-    "Python.MagmaClustPy.executor": "Run",
-    "Python.sandbox.executor": "Debug",
-    "Python.sandbox2.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "/Users/simonlejoly/Documents/Work/MagmaClustPy/benchmarks",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "editor.preferences.fonts.default",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python docs.Build Doc.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Doc test.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for R_equivalence.TestLikelihood.executor&quot;: &quot;Debug&quot;,
+    &quot;Python tests.Python tests for R_equivalence.TestLikelihood.test_value_close.executor&quot;: &quot;Debug&quot;,
+    &quot;Python tests.Python tests for R_equivalence.TestRtoPyToyExample.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for R_equivalence.test_sum_function_equivalence.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.R Equivalence.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.Build Package.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Debug.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.MagmaClustPy.executor&quot;: &quot;Run&quot;,
+    &quot;Python.sandbox.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.sandbox2.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/simonlejoly/Documents/Work/MagmaClustPy/benchmarks&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.fonts.default&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/benchmarks" />
@@ -340,7 +345,9 @@
       <workItem from="1741016065263" duration="724000" />
       <workItem from="1741019081967" duration="27011000" />
       <workItem from="1741176925241" duration="15636000" />
-      <workItem from="1741271910837" duration="31792000" />
+      <workItem from="1741271910837" duration="36288000" />
+      <workItem from="1741682604948" duration="19633000" />
+      <workItem from="1741764307984" duration="7141000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities">
       <option name="closed" value="true" />
