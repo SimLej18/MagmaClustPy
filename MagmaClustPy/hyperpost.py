@@ -136,13 +136,13 @@ def hyperpost(inputs, outputs, masks, prior_mean, mean_kernel, task_kernel, all_
 		else:
 			all_inputs = jnp.sort(jnp.unique(inputs.flatten()))
 
-	if grid is not None:
+	if grid is None:
+		grid = all_inputs
+		inputs_to_grid = None
+	else:
 		grid = jnp.sort(jnp.unique(jnp.concatenate([all_inputs, grid])))
 		inputs_to_grid = jnp.searchsorted(grid, all_inputs)
 		common_input = False  # We need to pad the cov matrices to compute on the full grid
-	else:
-		grid = all_inputs
-		inputs_to_grid = None
 
 	if prior_mean.ndim == 0:
 		prior_mean = jnp.broadcast_to(prior_mean, (len(grid),))
@@ -157,7 +157,7 @@ def hyperpost(inputs, outputs, masks, prior_mean, mean_kernel, task_kernel, all_
 
 	if common_input:
 		if common_hp:
-			task_cov = task_kernel(all_inputs)  # Shape: (N, N)
+			task_cov = task_kernel(grid)  # Shape: (N, N)
 			return hyperpost_common_input_common_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_cov,
 			                                        inputs_to_grid, nugget)
 

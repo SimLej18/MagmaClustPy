@@ -5,13 +5,13 @@ from jax.tree_util import register_pytree_node_class
 
 @register_pytree_node_class
 class AbstractKernel:
-	def __init__(self, **kwargs):
-		# Check that hyperparameters are all jnp arrays/scalars
-		for key, value in kwargs.items():
-			if not isinstance(value, jnp.ndarray):  # Check type
-				raise ValueError(f"Parameter {key} must be a jnp.ndarray.")
-			else:  # Check dimensionality
-				if len(value.shape) > 1:
+	def __init__(self, skip_check=False, **kwargs):
+		if not skip_check:
+			# Check that hyperparameters are all jnp arrays/scalars
+			for key, value in kwargs.items():
+				if not isinstance(value, jnp.ndarray):  # Check type
+					kwargs[key] = jnp.array(value)
+				if len(kwargs[key].shape) > 1:  # Check dimensionality
 					raise ValueError(f"Parameter {key} must be a scalar or a 1D array, got shape {value.shape}.")
 
 		# Register hyperparameters in *kwargs* as instance attributes
@@ -63,7 +63,7 @@ class AbstractKernel:
 		# as we don't know the number of parameters the constructor expects, yet we send it children.
 		# On a subclass, this will work as expected as long as the constructor has a clear number of
 		# kwargs as parameters.
-		return cls(*children)
+		return cls(*children, skip_check=True)
 
 	@jit
 	def compute_scalar_if_not_nan(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:

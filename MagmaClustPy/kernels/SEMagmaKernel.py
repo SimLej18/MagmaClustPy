@@ -7,12 +7,12 @@ from MagmaClustPy.kernels import AbstractKernel
 
 @register_pytree_node_class
 class SEMagmaKernel(AbstractKernel):
-	def __init__(self, length_scale=None, variance=None):
+	def __init__(self, length_scale=None, variance=None, **kwargs):
 		if length_scale is None:
 			length_scale = jnp.array([1.])
 		if variance is None:
 			variance = jnp.array([1.])
-		super().__init__(length_scale=length_scale, variance=variance)
+		super().__init__(length_scale=length_scale, variance=variance, **kwargs)
 
 	@jit
 	def compute_scalar(self, x1: jnp.ndarray, x2: jnp.ndarray, length_scale=None, variance=None) -> jnp.ndarray:
