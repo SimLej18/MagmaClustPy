@@ -8,8 +8,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[enhanc|fix] hp optim seems done and optimised">
+    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[feat] new &quot;huge&quot; datasets">
+      <change afterPath="$PROJECT_DIR$/benchmarks/benchmark.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/hp_optimisation.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/hp_optimisation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -19,8 +22,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Jupyter Notebook" />
         <option value="Python Script" />
+        <option value="Jupyter Notebook" />
       </list>
     </option>
   </component>
@@ -95,6 +98,7 @@
       <recent name="$PROJECT_DIR$/tests" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/benchmarks/dummy_datasets" />
       <recent name="$PROJECT_DIR$/tests/MagmaFromScratch" />
       <recent name="$PROJECT_DIR$/tests/MagmaFromScratch/M Step" />
       <recent name="$PROJECT_DIR$/tests" />
@@ -343,7 +347,7 @@
       <workItem from="1741176925241" duration="15636000" />
       <workItem from="1741271910837" duration="36288000" />
       <workItem from="1741682604948" duration="19633000" />
-      <workItem from="1741764307984" duration="36270000" />
+      <workItem from="1741764307984" duration="39775000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities">
       <option name="closed" value="true" />
@@ -553,7 +557,15 @@
       <option name="project" value="LOCAL" />
       <updated>1741869758647</updated>
     </task>
-    <option name="localTasksCounter" value="27" />
+    <task id="LOCAL-00027" summary="[feat] new &quot;huge&quot; datasets">
+      <option name="closed" value="true" />
+      <created>1741935840115</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1741935840115</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -571,7 +583,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="[feat] Test script and configs for R-Python equivalence" />
     <MESSAGE value="[enhanc] new way of falling back to default backend when implementation of a method is lacking" />
     <MESSAGE value="[feat] first version of simulate_data.py working" />
     <MESSAGE value="[feat] basic tests for simulate_data.py" />
@@ -596,7 +607,8 @@
     <MESSAGE value="[fix] bug with hyperpost on common inputs but distinct hp" />
     <MESSAGE value="[enhanc](WiP) benchmarking hp optim, but there are fixes and improvements to be made" />
     <MESSAGE value="[enhanc|fix] hp optim seems done and optimised" />
-    <option name="LAST_COMMIT_MESSAGE" value="[enhanc|fix] hp optim seems done and optimised" />
+    <MESSAGE value="[feat] new &quot;huge&quot; datasets" />
+    <option name="LAST_COMMIT_MESSAGE" value="[feat] new &quot;huge&quot; datasets" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

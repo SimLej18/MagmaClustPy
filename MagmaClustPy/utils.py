@@ -32,7 +32,7 @@ def preprocess_db(db: pd.DataFrame):
 	"""
 	# Get all distinct inputs
 	all_ids = jnp.array(db["ID"].unique())
-	all_inputs = jnp.sort(jnp.array(db["Input"].unique()))
+	all_inputs = jnp.sort(jnp.array(db["Input"].unique())) * jnp.array(1.)  # Convert to float with default dtype
 
 	# Initialise padded inputs, padded outputs and masks
 	padded_inputs = jnp.full((len(all_ids), len(all_inputs)), jnp.nan)

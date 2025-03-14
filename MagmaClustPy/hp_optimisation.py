@@ -71,7 +71,7 @@ def optimise_hyperparameters(mean_kernel, task_kernel, inputs, outputs, all_inpu
 	mean_fun_wrapper = lambda kern: magma_neg_likelihood(kern, all_inputs, prior_mean, post_mean, post_cov, mask=None,
 	                                                     nugget=nugget)
 
-	new_mean_kernel, _, _ = run_opt(mean_kernel, mean_fun_wrapper, mean_opt, max_iter=max_iter, tol=tol)
+	new_mean_kernel, _, mean_llh = run_opt(mean_kernel, mean_fun_wrapper, mean_opt, max_iter=max_iter, tol=tol)
 
 	# Optimise task kernel
 	if verbose:
@@ -81,6 +81,6 @@ def optimise_hyperparameters(mean_kernel, task_kernel, inputs, outputs, all_inpu
 	task_fun_wrapper = lambda kern: magma_neg_likelihood(kern, inputs, outputs, prior_mean, post_cov, mask=masks,
 	                                                     nugget=nugget).sum()
 
-	new_task_kernel, _, _ = run_opt(task_kernel, task_fun_wrapper, task_opt, max_iter=max_iter, tol=tol)
+	new_task_kernel, _, task_llh = run_opt(task_kernel, task_fun_wrapper, task_opt, max_iter=max_iter, tol=tol)
 
-	return new_mean_kernel, new_task_kernel
+	return new_mean_kernel, new_task_kernel, mean_llh, task_llh
