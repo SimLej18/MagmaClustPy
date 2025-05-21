@@ -61,8 +61,14 @@ def run_opt(init_params, fun, opt, max_iter, tol):
 	return final_params, final_state, final_llh
 
 
-def optimise_hyperparameters(mean_kernel, task_kernel, inputs, outputs, all_inputs, prior_mean, post_mean, post_cov,
-                             masks, nugget=jnp.array(1e-10), max_iter=100, tol=1e-3, verbose=False):
+def optimise_hyperparameters(inputs, outputs, masks, prior_mean, mean_kernel, task_kernel, post_mean, post_cov,
+                             all_inputs=None, nugget=jnp.array(1e-10), max_iter=100, tol=1e-3, verbose=False):
+	if all_inputs is None:
+		if jnp.all(masks):  # Common input
+			all_inputs = inputs[0]
+		else:
+			all_inputs = jnp.sort(jnp.unique(inputs.flatten()))
+
 	# Optimise mean kernel
 	if verbose:
 		mean_opt = optax.chain(print_info(), optax.lbfgs())
@@ -79,7 +85,7 @@ def optimise_hyperparameters(mean_kernel, task_kernel, inputs, outputs, all_inpu
 	else:
 		task_opt = optax.lbfgs()
 	task_fun_wrapper = lambda kern: magma_neg_likelihood(kern, inputs, outputs, prior_mean, post_cov, mask=masks,
-	                                                     nugget=nugget).sum()
+	                                                     nugget=nugget).mean()
 
 	new_task_kernel, _, task_llh = run_opt(task_kernel, task_fun_wrapper, task_opt, max_iter=max_iter, tol=tol)
 

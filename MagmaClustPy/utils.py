@@ -32,7 +32,7 @@ def preprocess_db(db: pd.DataFrame):
 	"""
 	# Get all distinct inputs
 	all_ids = jnp.array(db["ID"].unique())
-	all_inputs = jnp.sort(jnp.array(db["Input"].unique())) * jnp.array(1.)  # Convert to float with default dtype
+	all_inputs = jnp.sort(jnp.array(db["Input"].unique()))
 
 	# Initialise padded inputs, padded outputs and masks
 	padded_inputs = jnp.full((len(all_ids), len(all_inputs)), jnp.nan)
@@ -40,11 +40,17 @@ def preprocess_db(db: pd.DataFrame):
 	masks = jnp.zeros((len(all_ids), len(all_inputs)), dtype=bool)
 
 	# Fill padded inputs, padded outputs and masks
-	for i, _id in enumerate(db["ID"].unique()):
-		sub_db = db[db["ID"] == _id]
-		idx = jnp.searchsorted(all_inputs, jnp.array(sub_db["Input"]))
-		padded_inputs = padded_inputs.at[i, idx].set(sub_db["Input"].values)
-		padded_outputs = padded_outputs.at[i, idx].set(sub_db["Output"].values)
-		masks = masks.at[i, idx].set(jnp.ones(len(sub_db), dtype=bool))
+	prev_id = ""
+	id_index = -1
+
+	for row, _id, input, output in db.itertuples():
+		if _id != prev_id:
+			prev_id = _id
+			id_index += 1
+
+		idx = jnp.searchsorted(all_inputs, input)
+		padded_inputs = padded_inputs.at[id_index, idx].set(input)
+		padded_outputs = padded_outputs.at[id_index, idx].set(output)
+		masks = masks.at[id_index, idx].set(True)
 
 	return all_inputs, padded_inputs, padded_outputs, masks
