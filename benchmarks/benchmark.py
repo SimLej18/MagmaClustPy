@@ -48,7 +48,7 @@ def run_train(dataset: str, common_input: bool, common_hp: bool, max_iter: int =
 	start = time.time()
 
 	## Data import
-	dataset_file = f"dummy_datasets/{dataset}_{'common_input' if common_input else 'distinct_input'}_{'common_hp' if common_hp else 'distinct_hp'}.csv"
+	dataset_file = os.path.join("dummy_datasets", f"{dataset}_{'common_input' if common_input else 'distinct_input'}_{'common_hp' if common_hp else 'distinct_hp'}.csv")
 	try:
 		db = pd.read_csv(dataset_file)
 	except FileNotFoundError:
@@ -83,7 +83,7 @@ def run_train(dataset: str, common_input: bool, common_hp: bool, max_iter: int =
 	prev_task_llh = jnp.inf
 	conv_ratio = jnp.inf
 
-	for i in range(MAX_ITER):
+	for i in range(max_iter):
 		logging.info(f"Iteration {i:4}\tLlhs: {prev_mean_llh:12.4f}, {prev_task_llh:12.4f}\tConv. Ratio: {conv_ratio:.5f}\t\n\tMean: {mean_kernel}\t\n\tTask: {task_kernel}")
 		# e-step: compute hyper-posterior
 		post_mean, post_cov = hyperpost(padded_inputs_train, padded_outputs_train, masks_train, prior_mean, mean_kernel, task_kernel, all_inputs=all_inputs_train, nugget=nugget)
@@ -92,18 +92,18 @@ def run_train(dataset: str, common_input: bool, common_hp: bool, max_iter: int =
 		mean_kernel, task_kernel, mean_llh, task_llh = optimise_hyperparameters(mean_kernel, task_kernel, padded_inputs_train, padded_outputs_train, all_inputs_train, prior_mean, post_mean, post_cov, masks_train, nugget=nugget, verbose=VERBOSE)
 
 		# Check for NaN values and stop early
-		if jnp.isnan(mean_llh) or jnp.isnan(task_llh):
-			logging.error(f"NaN detected at iteration {i}. Stopping training.")
-			break
+		#if jnp.isnan(mean_llh) or jnp.isnan(task_llh):
+		#	logging.error(f"NaN detected at iteration {i}. Stopping training.")
+		#	break
 
 		# Check convergence
 		if i > 0:
 			conv_ratio = jnp.abs((prev_mean_llh + prev_task_llh) - (mean_llh + task_llh)) / jnp.abs(prev_mean_llh + prev_task_llh)
-			if conv_ratio < CONVERG_THRESHOLD:
+			if conv_ratio < converg_threshold:
 				logging.info(f"Convergence reached after {i+1} iterations.\tLlhs: {mean_llh:12.4f}, {task_llh:12.4f}\n\tMean: {mean_kernel}\n\tTask: {task_kernel}")
 				break
 
-		if i == MAX_ITER - 1:
+		if i == max_iter - 1:
 			logging.warning(f"Maximum number of iterations reached.\nLast modif: {jnp.abs(prev_mean_llh - mean_llh).item()} & {jnp.abs(prev_task_llh - task_llh).item()}")
 
 		prev_mean_llh = mean_llh
@@ -140,6 +140,6 @@ if __name__ == "__main__":
 	# Default hyper-parameters
 	MAX_ITER = 25
 	CONVERG_THRESHOLD = 1e-3
-	NUGGET = jnp.array(1e-6)
+	NUGGET = jnp.array(1e-5)
 
-	run_train(dataset, common_input, common_hp, MAX_ITER, CONVERG_THRESHOLD, NUGGET)
+	run_train(dataset, common_input, common_hp, max_iter=MAX_ITER, converg_threshold=CONVERG_THRESHOLD, nugget=NUGGET)
