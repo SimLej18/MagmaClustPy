@@ -7,3 +7,4 @@
 *.pyc
 /.idea
 .idea/workspace.xml
+/benchmarks/logs/

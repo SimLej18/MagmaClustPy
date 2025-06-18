@@ -1,13 +1,14 @@
-from jax import jit, vmap, lax
+from jax import jit, vmap
 from jax import numpy as jnp
 from jax.tree_util import register_pytree_node_class
+from jax.lax import cond
 
 
 @register_pytree_node_class
 class AbstractKernel:
 	def __init__(self, skip_check=False, **kwargs):
 		if not skip_check:
-			# Check that hyperparameters are all jnp arrays/scalars
+			# Check that hyperparameters are all jnp arrays/scalars or kernels
 			for key, value in kwargs.items():
 				if not isinstance(value, jnp.ndarray):  # Check type
 					kwargs[key] = jnp.array(value)
@@ -75,7 +76,7 @@ class AbstractKernel:
 		:param kwargs: hyperparameters of the kernel
 		:return: scalar array
 		"""
-		return lax.cond(jnp.isnan(x1) | jnp.isnan(x2), lambda _: jnp.nan,
+		return cond(jnp.isnan(x1) | jnp.isnan(x2), lambda _: jnp.nan,
 		                lambda _: self.compute_scalar(x1, x2, **kwargs), None)
 
 	@jit
@@ -112,7 +113,7 @@ class AbstractKernel:
 		:param kwargs: hyperparameters of the kernel
 		:return: vector array (N, )
 		"""
-		return lax.cond(jnp.any(jnp.isnan(x2)), lambda _: x1 * jnp.nan, lambda _: self.compute_vector(x1, x2, **kwargs),
+		return cond(jnp.any(jnp.isnan(x2)), lambda _: x1 * jnp.nan, lambda _: self.compute_vector(x1, x2, **kwargs),
 		                None)
 
 	@jit

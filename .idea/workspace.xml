@@ -8,11 +8,45 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[feat] new &quot;huge&quot; datasets">
-      <change afterPath="$PROJECT_DIR$/benchmarks/benchmark.ipynb" afterDir="false" />
+    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[enhanc] more efficient preprocess loop&#10;[fix] typo in comments">
+      <change afterPath="$PROJECT_DIR$/MagmaClustPy/kernels/NoisySEMagmaKernel.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/benchmarks/likelihoods.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/run_benchmarks.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/pipeline_debug.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/sandbox.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MagmaClustPy/hp_optimisation.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/hp_optimisation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/hyperpost.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/hyperpost.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/kernels/AbstractKernel.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/kernels/AbstractKernel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/kernels/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/kernels/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/likelihoods.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/likelihoods.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MagmaClustPy/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/benchmark.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/benchmark.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/custom_common_input_common_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/custom_common_input_common_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/custom_common_input_distinct_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/custom_common_input_distinct_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/custom_distinct_input_common_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/custom_distinct_input_common_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/custom_distinct_input_distinct_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/custom_distinct_input_distinct_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/huge_common_input_common_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/huge_common_input_common_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/huge_common_input_distinct_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/huge_common_input_distinct_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/huge_distinct_input_common_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/huge_distinct_input_common_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/huge_distinct_input_distinct_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/huge_distinct_input_distinct_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/large_common_input_common_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/large_common_input_common_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/large_common_input_distinct_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/large_common_input_distinct_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/large_distinct_input_common_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/large_distinct_input_common_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/large_distinct_input_distinct_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/large_distinct_input_distinct_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/medium_common_input_common_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/medium_common_input_common_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/medium_common_input_distinct_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/medium_common_input_distinct_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/medium_distinct_input_common_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/medium_distinct_input_common_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/medium_distinct_input_distinct_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/medium_distinct_input_distinct_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/small_common_input_common_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/small_common_input_common_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/small_common_input_distinct_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/small_common_input_distinct_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/small_distinct_input_common_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/small_distinct_input_common_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/dummy_datasets/small_distinct_input_distinct_hp.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dummy_datasets/small_distinct_input_distinct_hp.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/hp_optimisation.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/hp_optimisation.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/kernels.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/kernels.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/preprocess_db.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/preprocess_db.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,14 +84,16 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/SimLej18/MagmaClustPy.git&quot;,
-    &quot;accountId&quot;: &quot;11159a2b-2768-415b-99f8-82247083127d&quot;
+    &quot;accountId&quot;: &quot;050344fb-fa7d-4dbb-9761-e83644eb8174&quot;
   }
 }</component>
+  <component name="LLMProjectSettings">
+    <option name="turned_on" value="false" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 4
 }</component>
   <component name="ProjectId" id="2nTGG3bxnaLnzez1ZpmcrtENKAh" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -71,42 +107,47 @@
     &quot;Python tests.Python tests for R_equivalence.TestRtoPyToyExample.executor&quot;: &quot;Run&quot;,
     &quot;Python tests.Python tests for R_equivalence.test_sum_function_equivalence.executor&quot;: &quot;Run&quot;,
     &quot;Python tests.R Equivalence.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.Benchmark - Small C_I C_HP.executor&quot;: &quot;Run&quot;,
     &quot;Python.Build Package.executor&quot;: &quot;Run&quot;,
     &quot;Python.Debug.executor&quot;: &quot;Debug&quot;,
     &quot;Python.MagmaClustPy.executor&quot;: &quot;Run&quot;,
+    &quot;Python.benchmark.executor&quot;: &quot;Run&quot;,
+    &quot;Python.pipeline_debug.executor&quot;: &quot;Run&quot;,
     &quot;Python.sandbox.executor&quot;: &quot;Debug&quot;,
     &quot;Python.sandbox2.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHELLCHECK.PATH&quot;: &quot;/Users/simonlejoly/Library/Application Support/JetBrains/DataSpell2025.1/plugins/Shell Script/shellcheck&quot;,
+    &quot;Shell Script.All Benchmarks.executor&quot;: &quot;Run&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/simonlejoly/Documents/Work/MagmaClustPy/benchmarks&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/simonlejoly/Documents/Work/MagmaClustPy&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.fonts.default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;ml.llm.LLMConfigurable&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/tests" />
       <recent name="$PROJECT_DIR$/benchmarks" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/tests/benchmarks" />
-      <recent name="$PROJECT_DIR$/tests" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/benchmarks/dummy_datasets" />
       <recent name="$PROJECT_DIR$/tests/MagmaFromScratch" />
       <recent name="$PROJECT_DIR$/tests/MagmaFromScratch/M Step" />
       <recent name="$PROJECT_DIR$/tests" />
-      <recent name="$PROJECT_DIR$" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.sandbox">
-    <configuration name="Build Package" type="PythonConfigurationType" factoryName="Python">
+  <component name="RunManager" selected="Shell Script.All Benchmarks">
+    <configuration name="Benchmark - Small C_I C_HP" type="PythonConfigurationType" factoryName="Python">
       <module name="MagmaClustPy" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -116,6 +157,28 @@
       </envs>
       <option name="SDK_HOME" value="" />
       <option name="SDK_NAME" value="MagmaClustPy" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/benchmarks" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/benchmarks/benchmark.py" />
+      <option name="PARAMETERS" value="small true true" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Build Package" type="PythonConfigurationType" factoryName="Python">
+      <module name="MagmaClustPy" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -139,7 +202,6 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="SDK_NAME" value="MagmaClustPy" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -148,6 +210,53 @@
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tests/debug.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="benchmark" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="MagmaClustPy" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="SDK_NAME" value="MagmaClustPy" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/benchmarks" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/benchmarks/benchmark.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pipeline_debug" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="MagmaClustPy" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="SDK_NAME" value="MagmaClustPy" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tests/pipeline_debug.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
       <option name="REDIRECT_INPUT" value="false" />
@@ -177,13 +286,27 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="All Benchmarks" type="ShConfigurationType">
+      <option name="SCRIPT_TEXT" value="" />
+      <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
+      <option name="SCRIPT_PATH" value="$PROJECT_DIR$/run_benchmarks.sh" />
+      <option name="SCRIPT_OPTIONS" value="" />
+      <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="true" />
+      <option name="SCRIPT_WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="INDEPENDENT_INTERPRETER_PATH" value="true" />
+      <option name="INTERPRETER_PATH" value="/bin/zsh" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="EXECUTE_IN_TERMINAL" value="true" />
+      <option name="EXECUTE_SCRIPT_FILE" value="true" />
+      <envs />
+      <method v="2" />
+    </configuration>
     <configuration name="Build Doc" type="docs" factoryName="Sphinx task">
       <module name="MagmaClustPy" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="$USER_HOME$/opt/anaconda3/envs/MagmaClustPy/bin/python" />
-      <option name="SDK_NAME" value="MagmaClustPy" />
       <option name="WORKING_DIRECTORY" value="" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -265,7 +388,6 @@
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
-      <option name="SDK_NAME" value="MagmaClustPy" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -279,8 +401,11 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Python.Benchmark - Small C_I C_HP" />
       <item itemvalue="Python.Build Package" />
       <item itemvalue="Python.Debug" />
+      <item itemvalue="Python.benchmark" />
+      <item itemvalue="Python.pipeline_debug" />
       <item itemvalue="Python.sandbox" />
       <item itemvalue="Python docs.Build Doc" />
       <item itemvalue="Python tests.R Equivalence" />
@@ -288,6 +413,7 @@
       <item itemvalue="Python tests.Python tests for R_equivalence.TestLikelihood.test_value_close" />
       <item itemvalue="Python tests.Python tests for R_equivalence.TestRtoPyToyExample" />
       <item itemvalue="Python tests.Python tests for R_equivalence.test_sum_function_equivalence" />
+      <item itemvalue="Shell Script.All Benchmarks" />
     </list>
     <recent_temporary>
       <list>
@@ -302,8 +428,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-PY-243.25659.43" />
-        <option value="bundled-python-sdk-181015f7ab06-4df51de95216-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-243.25659.43" />
+        <option value="bundled-python-sdk-47c6639f9d67-99d813433b97-com.jetbrains.pycharm.ds.sharedIndexes.bundled-DS-251.25410.158" />
       </set>
     </attachedChunks>
   </component>
@@ -348,6 +473,14 @@
       <workItem from="1741271910837" duration="36288000" />
       <workItem from="1741682604948" duration="19633000" />
       <workItem from="1741764307984" duration="39775000" />
+      <workItem from="1741939934525" duration="11120000" />
+      <workItem from="1742388253829" duration="1000" />
+      <workItem from="1747812811455" duration="27153000" />
+      <workItem from="1747920234653" duration="47516000" />
+      <workItem from="1748510401721" duration="2081000" />
+      <workItem from="1748863267732" duration="16000" />
+      <workItem from="1749130875503" duration="6851000" />
+      <workItem from="1749403828411" duration="5530000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities">
       <option name="closed" value="true" />
@@ -565,7 +698,23 @@
       <option name="project" value="LOCAL" />
       <updated>1741935840115</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="[feat](WiP) benchmarks can run, but rarely converges...">
+      <option name="closed" value="true" />
+      <created>1741939991023</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1741939991023</updated>
+    </task>
+    <task id="LOCAL-00029" summary="[enhanc] more efficient preprocess loop&#10;[fix] typo in comments">
+      <option name="closed" value="true" />
+      <created>1747817273609</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1747817273609</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -583,8 +732,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="[enhanc] new way of falling back to default backend when implementation of a method is lacking" />
-    <MESSAGE value="[feat] first version of simulate_data.py working" />
     <MESSAGE value="[feat] basic tests for simulate_data.py" />
     <MESSAGE value="[feat](WiP) Start of e_step for magma training&#10;[feat] New kernel inheritance&#10;[feat] New way of handling random in backend" />
     <MESSAGE value="[feat] New (much clever) way of handling common API for multiple LinAlg backends" />
@@ -608,7 +755,9 @@
     <MESSAGE value="[enhanc](WiP) benchmarking hp optim, but there are fixes and improvements to be made" />
     <MESSAGE value="[enhanc|fix] hp optim seems done and optimised" />
     <MESSAGE value="[feat] new &quot;huge&quot; datasets" />
-    <option name="LAST_COMMIT_MESSAGE" value="[feat] new &quot;huge&quot; datasets" />
+    <MESSAGE value="[feat](WiP) benchmarks can run, but rarely converges..." />
+    <MESSAGE value="[enhanc] more efficient preprocess loop&#10;[fix] typo in comments" />
+    <option name="LAST_COMMIT_MESSAGE" value="[enhanc] more efficient preprocess loop&#10;[fix] typo in comments" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -664,21 +813,90 @@
           <option name="timeStamp" value="51" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/MagmaClustPy/kernels/AbstractKernel.py</url>
-          <line>65</line>
-          <option name="timeStamp" value="63" />
+          <condition expression="jnp.any(jnp.isnan(res))" language="Python" />
+          <url>file://$PROJECT_DIR$/tests/pipeline_debug.py</url>
+          <line>478</line>
+          <option name="timeStamp" value="115" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <url>file://$PROJECT_DIR$/benchmarks/likelihoods.ipynb</url>
+          <line>143</line>
+          <option name="timeStamp" value="67" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <url>file://$PROJECT_DIR$/benchmarks/likelihoods.ipynb</url>
+          <line>146</line>
+          <option name="timeStamp" value="69" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <url>file://$PROJECT_DIR$/tests/debug.ipynb</url>
+          <line>64</line>
+          <option name="timeStamp" value="83" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <url>file://$PROJECT_DIR$/tests/debug.ipynb</url>
+          <line>67</line>
+          <option name="timeStamp" value="84" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <url>file://$PROJECT_DIR$/tests/debug.ipynb</url>
+          <line>75</line>
+          <option name="timeStamp" value="85" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <url>file://$PROJECT_DIR$/tests/debug.ipynb</url>
+          <line>78</line>
+          <option name="timeStamp" value="86" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <url>file://$PROJECT_DIR$/tests/debug.ipynb</url>
+          <line>83</line>
+          <option name="timeStamp" value="88" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <url>file://$PROJECT_DIR$/tests/debug.ipynb</url>
+          <line>170</line>
+          <option name="timeStamp" value="101" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <url>file://$PROJECT_DIR$/tests/pipeline_debug.ipynb</url>
+          <line>671</line>
+          <option name="timeStamp" value="107" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <url>file://$PROJECT_DIR$/tests/pipeline_debug.ipynb</url>
+          <line>681</line>
+          <option name="timeStamp" value="111" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <url>file://$PROJECT_DIR$/tests/pipeline_debug.ipynb</url>
+          <line>684</line>
+          <option name="timeStamp" value="112" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <condition expression="jnp.any(jnp.isnan(res))" language="Jupyter" />
+          <url>file://$PROJECT_DIR$/tests/pipeline_debug.ipynb</url>
+          <line>477</line>
+          <option name="timeStamp" value="113" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <condition expression="jnp.any(jnp.isnan(res[0])) or jnp.any(jnp.isnan(res[1]))" language="Jupyter" />
+          <url>file://$PROJECT_DIR$/tests/pipeline_debug.ipynb</url>
+          <line>427</line>
+          <option name="timeStamp" value="114" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/MagmaClustPy$Build_Package.coverage" NAME="Build Package Coverage Results" MODIFIED="1728992883279" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/MagmaClustPy$Doc_test.coverage" NAME="Doc test Coverage Results" MODIFIED="1728994491151" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
-    <SUITE FILE_PATH="coverage/MagmaClustPy$R_Equivalence.coverage" NAME="R Equivalence Coverage Results" MODIFIED="1739184918745" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
-    <SUITE FILE_PATH="coverage/MagmaClustPy$Debug.coverage" NAME="Debug Coverage Results" MODIFIED="1730884908006" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/MagmaClustPy$sandbox2.coverage" NAME="sandbox2 Coverage Results" MODIFIED="1737460448628" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/MagmaClustPy$.coverage" NAME=" Coverage Results" MODIFIED="1737721441337" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/MagmaClustPy$Debug.coverage" NAME="Debug Coverage Results" MODIFIED="1730884908006" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/MagmaClustPy$sandbox.coverage" NAME="sandbox Coverage Results" MODIFIED="1739184926587" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/MagmaClustPy$MagmaClustPy.coverage" NAME="MagmaClustPy Coverage Results" MODIFIED="1728992726332" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/MagmaClustPy$R_Equivalence.coverage" NAME="R Equivalence Coverage Results" MODIFIED="1739184918745" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/MagmaClustPy$benchmark.coverage" NAME="benchmark Coverage Results" MODIFIED="1749541520647" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/benchmarks" />
+    <SUITE FILE_PATH="coverage/MagmaClustPy$sandbox2.coverage" NAME="sandbox2 Coverage Results" MODIFIED="1737460448628" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/MagmaClustPy$Build_Package.coverage" NAME="Build Package Coverage Results" MODIFIED="1728992883279" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

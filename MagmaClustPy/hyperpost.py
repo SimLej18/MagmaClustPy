@@ -1,6 +1,7 @@
 from jax import jit
 from jax import numpy as jnp
 from jax.scipy.linalg import cho_factor, cho_solve
+from jax.tree_util import tree_flatten
 
 
 # JITed, specialized functions
@@ -127,7 +128,7 @@ def hyperpost(inputs, outputs, masks, prior_mean, mean_kernel, task_kernel, all_
 	:return: a 2-tuple of the posterior mean and covariance
 	"""
 	common_input = jnp.all(masks)
-	common_hp = all([hp.ndim == 0 for hp in task_kernel.__dict__.values()])
+	common_hp = all([hp.ndim == 0 for hp in tree_flatten(task_kernel)[0]])
 
 	# Merge inputs and grid to create all_inputs
 	if all_inputs is None:

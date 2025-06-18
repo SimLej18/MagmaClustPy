@@ -1,5 +1,5 @@
 import jax.numpy as jnp
-from jax import random
+from jax import random, jit, vmap
 import pandas as pd
 
 
@@ -19,10 +19,30 @@ def generate_dummy_db(M: int, MIN_N: int, MAX_N: int, grid: jnp.array, key: jnp.
 	return pd.DataFrame(data)
 
 
+@jit
+def extract_id_data(_id, values, all_inputs):
+	"""
+	Extract data for a given ID from the values array and return a row of padded inputs, padded outputs and mask.
+
+	:param _id:
+	:param id_index:
+	:param values:
+	:param all_inputs:
+	:return:
+	"""
+	padded_input = jnp.full((len(all_inputs),), jnp.nan)
+	padded_output = jnp.full((len(all_inputs),), jnp.nan)
+	mask = jnp.zeros((len(all_inputs),), dtype=bool)
+
+	idx = jnp.searchsorted(all_inputs, jnp.where(values[:, 0] == _id, values[:, 1], jnp.nan))
+
+	return padded_input.at[idx].set(values[:, 1]), padded_output.at[idx].set(values[:, 2]), mask.at[idx].set(True)
+
+
 def preprocess_db(db: pd.DataFrame):
 	"""
 
-	:param db: the db to process, with columns "ID", "Input" and "Output"
+	:param db: the db to process, with columns "ID", "Input" and "Output", in that order
 	:return: a tuple of (all_inputs, padded_inputs, padded_outputs, masks)
 	   - all_inputs: a matrix of shape (P, ) with all distinct inputs
 	   - padded_inputs: a matrix of shape (M, P) where M is the number of sequences and P is the number of distinct
@@ -35,22 +55,6 @@ def preprocess_db(db: pd.DataFrame):
 	all_inputs = jnp.sort(jnp.array(db["Input"].unique()))
 
 	# Initialise padded inputs, padded outputs and masks
-	padded_inputs = jnp.full((len(all_ids), len(all_inputs)), jnp.nan)
-	padded_outputs = jnp.full((len(all_ids), len(all_inputs)), jnp.nan)
-	masks = jnp.zeros((len(all_ids), len(all_inputs)), dtype=bool)
-
-	# Fill padded inputs, padded outputs and masks
-	prev_id = ""
-	id_index = -1
-
-	for row, _id, input, output in db.itertuples():
-		if _id != prev_id:
-			prev_id = _id
-			id_index += 1
-
-		idx = jnp.searchsorted(all_inputs, input)
-		padded_inputs = padded_inputs.at[id_index, idx].set(input)
-		padded_outputs = padded_outputs.at[id_index, idx].set(output)
-		masks = masks.at[id_index, idx].set(True)
+	padded_inputs, padded_outputs, masks = vmap(extract_id_data, in_axes=(0, None, None))(all_ids, db[["ID", "Input", "Output"]].values, all_inputs)
 
 	return all_inputs, padded_inputs, padded_outputs, masks
