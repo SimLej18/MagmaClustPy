@@ -8,12 +8,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[feat] forst working prototype with benchmarks">
-      <change afterPath="$PROJECT_DIR$/benchmarks/benchmark_analysis.ipynb" afterDir="false" />
+    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[fix] benchmarks">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/benchmarks/benchmark.py" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/benchmark.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_benchmarks.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_benchmarks.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/benchmark_analysis.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/benchmark_analysis.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/preprocess_db.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/preprocess_db.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,12 +46,12 @@
     &quot;assignee&quot;: &quot;SimLej18&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/SimLej18/MagmaClustPy.git&quot;,
-    &quot;accountId&quot;: &quot;050344fb-fa7d-4dbb-9761-e83644eb8174&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/SimLej18/MagmaClustPy.git",
+    "accountId": "11159a2b-2768-415b-99f8-82247083127d"
   }
-}</component>
+}]]></component>
   <component name="LLMProjectSettings">
     <option name="turned_on" value="false" />
   </component>
@@ -94,7 +92,7 @@
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -128,6 +126,7 @@
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/benchmarks/benchmark.py" />
       <option name="PARAMETERS" value="small true true" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -221,6 +220,7 @@
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tests/pipeline_debug.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="true" />
@@ -395,7 +395,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-47c6639f9d67-99d813433b97-com.jetbrains.pycharm.ds.sharedIndexes.bundled-DS-251.25410.158" />
+        <option value="bundled-js-predefined-d6986cc7102b-b26f3e71634d-JavaScript-PY-251.26094.141" />
+        <option value="bundled-python-sdk-9f8e2b94138c-36ea0e71a18c-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-251.26094.141" />
       </set>
     </attachedChunks>
   </component>
@@ -448,6 +449,7 @@
       <workItem from="1748863267732" duration="16000" />
       <workItem from="1749130875503" duration="6851000" />
       <workItem from="1749403828411" duration="5530000" />
+      <workItem from="1750337020370" duration="4211000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities">
       <option name="closed" value="true" />
@@ -699,7 +701,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="[feat](WiP) Start of e_step for magma training&#10;[feat] New kernel inheritance&#10;[feat] New way of handling random in backend" />
     <MESSAGE value="[feat] New (much clever) way of handling common API for multiple LinAlg backends" />
     <MESSAGE value="[feat] first working version of the e_step, and prepared ground for the m_step" />
     <MESSAGE value="[feat](WiP) New likelihood, advancing towards a working M-step" />
@@ -724,7 +725,8 @@
     <MESSAGE value="[feat](WiP) benchmarks can run, but rarely converges..." />
     <MESSAGE value="[enhanc] more efficient preprocess loop&#10;[fix] typo in comments" />
     <MESSAGE value="[feat] forst working prototype with benchmarks" />
-    <option name="LAST_COMMIT_MESSAGE" value="[feat] forst working prototype with benchmarks" />
+    <MESSAGE value="[fix] benchmarks" />
+    <option name="LAST_COMMIT_MESSAGE" value="[fix] benchmarks" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -824,33 +826,6 @@
           <url>file://$PROJECT_DIR$/tests/debug.ipynb</url>
           <line>170</line>
           <option name="timeStamp" value="101" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
-          <url>file://$PROJECT_DIR$/tests/pipeline_debug.ipynb</url>
-          <line>671</line>
-          <option name="timeStamp" value="107" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
-          <url>file://$PROJECT_DIR$/tests/pipeline_debug.ipynb</url>
-          <line>681</line>
-          <option name="timeStamp" value="111" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
-          <url>file://$PROJECT_DIR$/tests/pipeline_debug.ipynb</url>
-          <line>684</line>
-          <option name="timeStamp" value="112" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
-          <condition expression="jnp.any(jnp.isnan(res))" language="Jupyter" />
-          <url>file://$PROJECT_DIR$/tests/pipeline_debug.ipynb</url>
-          <line>477</line>
-          <option name="timeStamp" value="113" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
-          <condition expression="jnp.any(jnp.isnan(res[0])) or jnp.any(jnp.isnan(res[1]))" language="Jupyter" />
-          <url>file://$PROJECT_DIR$/tests/pipeline_debug.ipynb</url>
-          <line>427</line>
-          <option name="timeStamp" value="114" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
