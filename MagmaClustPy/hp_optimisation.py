@@ -62,7 +62,7 @@ def run_opt(init_params, fun, opt, max_iter, tol):
 
 
 def optimise_hyperparameters(mean_kernel, task_kernel, inputs, outputs, all_inputs, prior_mean, post_mean, post_cov,
-                             masks, nugget=jnp.array(1e-10), max_iter=100, tol=1e-3, verbose=False):
+                             mappings, nugget=jnp.array(1e-10), max_iter=100, tol=1e-3, verbose=False):
 	# Optimise mean kernel
 	if verbose:
 		mean_opt = optax.chain(print_info(), optax.lbfgs())
@@ -70,7 +70,7 @@ def optimise_hyperparameters(mean_kernel, task_kernel, inputs, outputs, all_inpu
 		mean_opt = optax.lbfgs()
 
 	def mean_fun_wrapper(kern):
-		res = magma_neg_likelihood(kern, all_inputs, post_mean, prior_mean, post_cov, mask=None, nugget=nugget)
+		res = magma_neg_likelihood(kern, all_inputs, post_mean, prior_mean, post_cov, None, nugget=nugget)
 		return res
 
 	new_mean_kernel, _, mean_llh = run_opt(mean_kernel, mean_fun_wrapper, mean_opt, max_iter=max_iter, tol=tol)
@@ -82,7 +82,7 @@ def optimise_hyperparameters(mean_kernel, task_kernel, inputs, outputs, all_inpu
 		task_opt = optax.lbfgs()
 
 	def task_fun_wrapper(kern):
-		res = magma_neg_likelihood(kern, inputs, outputs, post_mean, post_cov, mask=masks, nugget=nugget).sum()
+		res = magma_neg_likelihood(kern, inputs, outputs, post_mean, post_cov, mappings, nugget=nugget).sum()
 		return res
 
 	new_task_kernel, _, task_llh = run_opt(task_kernel, task_fun_wrapper, task_opt, max_iter=max_iter, tol=tol)

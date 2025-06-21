@@ -12,7 +12,7 @@ pip install -r requirements.txt
 
 # Define the arguments
 # dataset : either "small", "medium", "large" or "huge"
-datasets=("small" "medium")  # "large") # "huge")
+datasets=("small" "medium" "large") # "huge")
 
 # common_input : either "true" or "false"
 common_inputs=("true" "false")

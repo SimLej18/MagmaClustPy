@@ -1,3 +1,4 @@
+import jax
 import jax.numpy as jnp
 from jax import random, jit, vmap
 import pandas as pd
@@ -7,22 +8,23 @@ def generate_dummy_db(M: int, MIN_N: int, MAX_N: int, grid: jnp.array, key: jnp.
 	# We fill DB with random sequences
 	data = []
 	for m in range(M):
-		key, subkey = random.split(key)
-		n_points = random.randint(subkey, (), MIN_N, MAX_N)
-		for n in range(n_points):
-			key, subkey1, subkey2 = random.split(key, 3)
+		key, subkey = jax.random.split(key)
+		n_points = jax.random.randint(subkey, (), MIN_N, MAX_N)
+		inputs = jax.random.choice(subkey, grid, (n_points,), replace=False)
+		for n, i in zip(range(n_points), inputs):
+			key, subkey1, subkey2 = jax.random.split(key, 3)
 			data.append({
 				"ID": m,
-				"Input": random.choice(subkey1, grid, (1,))[0].item(),
-				"Output": random.uniform(subkey2, (), jnp.float64, -5, 5).item()
+				"Input": i.item(),
+				"Output": jax.random.uniform(subkey2, (), jnp.float32, -5, 5).item()
 			})
 	return pd.DataFrame(data)
 
 
 @jit
-def extract_id_data(_id, values, all_inputs):
+def extract_id_data(_id, values, all_inputs, to_fill):
 	"""
-	Extract data for a given ID from the values array and return a row of padded inputs, padded outputs and mask.
+	Extract data for a given ID from the values array and return a row of padded inputs, padded outputs and index_mappings.
 
 	:param _id:
 	:param id_index:
@@ -30,13 +32,19 @@ def extract_id_data(_id, values, all_inputs):
 	:param all_inputs:
 	:return:
 	"""
-	padded_input = jnp.full((len(all_inputs),), jnp.nan)
-	padded_output = jnp.full((len(all_inputs),), jnp.nan)
-	mask = jnp.zeros((len(all_inputs),), dtype=bool)
+	inputs_i = jnp.where(values[:,0] == _id, values[:,1], jnp.nan)
+	outputs_i = jnp.where(values[:,0] == _id, values[:,2], jnp.nan)
+	mappings_i = jnp.searchsorted(all_inputs, inputs_i)
 
-	idx = jnp.searchsorted(all_inputs, jnp.where(values[:, 0] == _id, values[:, 1], jnp.nan))
+	# Compute index among the whole dataset
+	idx_i = jnp.where(jnp.isnan(inputs_i), to_fill.shape[0] + 1, jnp.cumsum(~jnp.isnan(inputs_i)) - 1)
 
-	return padded_input.at[idx].set(values[:, 1]), padded_output.at[idx].set(values[:, 2]), mask.at[idx].set(True)
+	# Create padded inputs and outputs
+	padded_input = jnp.full(to_fill.shape[0], jnp.nan).at[idx_i].set(inputs_i)
+	padded_output = jnp.full(to_fill.shape[0], jnp.nan).at[idx_i].set(outputs_i)
+	index_mappings = jnp.full(to_fill.shape[0], all_inputs.shape[0] + 1).at[idx_i].set(mappings_i).astype(int)
+
+	return padded_input, padded_output, index_mappings
 
 
 def preprocess_db(db: pd.DataFrame):
@@ -45,16 +53,63 @@ def preprocess_db(db: pd.DataFrame):
 	:param db: the db to process, with columns "ID", "Input" and "Output", in that order
 	:return: a tuple of (all_inputs, padded_inputs, padded_outputs, masks)
 	   - all_inputs: a matrix of shape (P, ) with all distinct inputs
-	   - padded_inputs: a matrix of shape (M, P) where M is the number of sequences and P is the number of distinct
-	   inputs. Missing inputs for each sequence are represented as NaNs.
-	   - padded_outputs: a matrix of shape (M, P) with corresponding output for each input and NaNs for missing inputs
-	   - masks: a matrix of shape (M, P) with 1 where the input is valid and 0 where it is padded
+	   - padded_inputs: a matrix of shape (M, MAX_N) where M is the number of sequences and MAX_N is the max number of points among all sequences. Missing inputs for each sequence are represented as NaNs.
+	   - padded_outputs: a matrix of shape (M, MAX_N) with corresponding output for each input and NaNs for missing inputs
+	   - index_mappings: a matrix of shape (M, MAX_N) with indices of the inputs in the all_inputs array. Missing inputs for each sequence are represented as -1.
 	"""
 	# Get all distinct inputs
-	all_ids = jnp.array(db["ID"].unique())
-	all_inputs = jnp.sort(jnp.array(db["Input"].unique()))
+	db_sorted = db.sort_values(['ID', 'Input'])
+	all_ids = jnp.array(db_sorted["ID"].unique())
+	all_inputs = jnp.sort(jnp.array(db_sorted["Input"].unique()))
+	MAX_N = db_sorted.groupby("ID")["Input"].count().max()  # Maximum number of points in a sequence
+	to_fill = jnp.full((MAX_N), jnp.nan)  # Placeholder for padded inputs and outputs
 
 	# Initialise padded inputs, padded outputs and masks
-	padded_inputs, padded_outputs, masks = vmap(extract_id_data, in_axes=(0, None, None))(all_ids, db[["ID", "Input", "Output"]].values, all_inputs)
+	padded_inputs, padded_outputs, index_mappings = vmap(extract_id_data, in_axes=(0, None, None, None))(all_ids,
+																											 db_sorted[
+																												 ["ID",
+																												  "Input",
+																												  "Output"]].values,
+																											 all_inputs,
+																											 to_fill)
 
-	return all_inputs, padded_inputs, padded_outputs, masks
+	return all_inputs, padded_inputs, padded_outputs, index_mappings
+
+
+@jit
+def map_to_full_matrix(dense_cov, all_inputs, mapping):
+	return jnp.full((len(all_inputs), len(all_inputs)), jnp.nan).at[jnp.ix_(mapping, mapping)].set(dense_cov)
+
+
+@jit
+def map_to_full_matrix_batch(dense_covs, all_inputs, mappings):
+	return vmap(map_to_full_matrix, in_axes=(0, None, 0))(dense_covs, all_inputs, mappings)
+
+
+@jit
+def map_to_full_array(dense_array, all_inputs, mapping):
+	return jnp.full((len(all_inputs)), jnp.nan).at[mapping].set(dense_array)
+
+
+@jit
+def map_to_full_array_batch(dense_arrays, all_inputs, mappings):
+	return vmap(map_to_full_array, in_axes=(0, None, 0))(dense_arrays, all_inputs, mappings)
+
+
+@jit
+def extract_from_full_array(full_array, like, mapping):
+	return jnp.where(mapping < len(full_array), full_array[mapping], jnp.nan)
+
+@jit
+def extract_from_full_array_batch(full_arrays, like, mappings):
+	return vmap(extract_from_full_array, in_axes=(0, None, 0))(full_arrays, like, mappings)
+
+
+@jit
+def extract_from_full_matrix(full_matrix, like, mapping):
+	mg = jnp.meshgrid(mapping, mapping)
+	return jnp.where((mg[0] < len(full_matrix)) & (mg[1] < len(full_matrix)), full_matrix[mg[0], mg[1]], jnp.nan)
+
+@jit
+def extract_from_full_matrix_batch(full_matrices, like, mappings):
+	return vmap(extract_from_full_matrix, in_axes=(0, None, 0))(full_matrices, like, mappings)

@@ -10,19 +10,13 @@ VERBOSE = False
 import os
 os.environ['JAX_ENABLE_X64'] = str(USE_X64).lower()
 import time
-import sys
 import argparse
 
 # JAX imports
 import jax
 jax.config.update("jax_disable_jit", not USE_JIT)
 jax.config.update("jax_debug_nans", DEBUG_NANS)
-from jax import jit, vmap, lax
 import jax.numpy as jnp
-import jax.scipy as jsp
-from jax.scipy.linalg import cho_solve, cho_factor
-from jax.scipy.optimize import minimize
-from jax.scipy.stats.multivariate_normal import logpdf
 
 # Other imports
 import pandas as pd
@@ -66,7 +60,7 @@ def run_train(dataset: str, common_input: bool, common_hp: bool, max_iter: int =
 
 	## Data preprocessing
 	# We need to convert the dataframe into jax arrays
-	all_inputs_train, padded_inputs_train, padded_outputs_train, masks_train = preprocess_db(db_train)
+	all_inputs_train, padded_inputs_train, padded_outputs_train, mappings_train = preprocess_db(db_train)
 
 	## Training
 	# Priors
@@ -86,10 +80,10 @@ def run_train(dataset: str, common_input: bool, common_hp: bool, max_iter: int =
 	for i in range(max_iter):
 		logging.info(f"Iteration {i:4}\tLlhs: {prev_mean_llh:12.4f}, {prev_task_llh:12.4f}\tConv. Ratio: {conv_ratio:.5f}\t\n\tMean: {mean_kernel}\t\n\tTask: {task_kernel}")
 		# e-step: compute hyper-posterior
-		post_mean, post_cov = hyperpost(padded_inputs_train, padded_outputs_train, masks_train, prior_mean, mean_kernel, task_kernel, all_inputs=all_inputs_train, nugget=nugget)
+		post_mean, post_cov = hyperpost(padded_inputs_train, padded_outputs_train, mappings_train, prior_mean, mean_kernel, task_kernel, all_inputs=all_inputs_train, nugget=nugget)
 
 		# m-step: update hyperparameters
-		mean_kernel, task_kernel, mean_llh, task_llh = optimise_hyperparameters(mean_kernel, task_kernel, padded_inputs_train, padded_outputs_train, all_inputs_train, prior_mean, post_mean, post_cov, masks_train, nugget=nugget, verbose=VERBOSE)
+		mean_kernel, task_kernel, mean_llh, task_llh = optimise_hyperparameters(mean_kernel, task_kernel, padded_inputs_train, padded_outputs_train, all_inputs_train, prior_mean, post_mean, post_cov, mappings_train, nugget=nugget, verbose=VERBOSE)
 
 		# Check for NaN values and stop early
 		#if jnp.isnan(mean_llh) or jnp.isnan(task_llh):

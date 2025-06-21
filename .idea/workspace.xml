@@ -8,10 +8,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[fix] benchmarks">
+    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[feat] new test on padding shows evidence for a way better approach, both on memory usage and execution time">
+      <change afterPath="$PROJECT_DIR$/MagmaClustPy/legacy.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/benchmarks/benchmark_analysis.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/benchmark_analysis.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/hp_optimisation.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/hp_optimisation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/hyperpost.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/hyperpost.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/likelihoods.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/likelihoods.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MagmaClustPy/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/benchmark.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/benchmark.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/benchmark.py" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/benchmark.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/hyperpost.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/hyperpost.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/likelihoods.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/likelihoods.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/benchmarks/preprocess_db.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/preprocess_db.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_benchmarks.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_benchmarks.sh" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,8 +30,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="Jupyter Notebook" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -449,7 +458,8 @@
       <workItem from="1748863267732" duration="16000" />
       <workItem from="1749130875503" duration="6851000" />
       <workItem from="1749403828411" duration="5530000" />
-      <workItem from="1750337020370" duration="4211000" />
+      <workItem from="1750337020370" duration="29554000" />
+      <workItem from="1750497452835" duration="3806000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities">
       <option name="closed" value="true" />
@@ -683,7 +693,15 @@
       <option name="project" value="LOCAL" />
       <updated>1747817273609</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="[feat] new test on padding shows evidence for a way better approach, both on memory usage and execution time">
+      <option name="closed" value="true" />
+      <created>1750341292263</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1750341292263</updated>
+    </task>
+    <option name="localTasksCounter" value="31" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -701,7 +719,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="[feat] New (much clever) way of handling common API for multiple LinAlg backends" />
     <MESSAGE value="[feat] first working version of the e_step, and prepared ground for the m_step" />
     <MESSAGE value="[feat](WiP) New likelihood, advancing towards a working M-step" />
     <MESSAGE value="[feat](WiP) Struggling on m-step and likelihood testing" />
@@ -726,7 +743,8 @@
     <MESSAGE value="[enhanc] more efficient preprocess loop&#10;[fix] typo in comments" />
     <MESSAGE value="[feat] forst working prototype with benchmarks" />
     <MESSAGE value="[fix] benchmarks" />
-    <option name="LAST_COMMIT_MESSAGE" value="[fix] benchmarks" />
+    <MESSAGE value="[feat] new test on padding shows evidence for a way better approach, both on memory usage and execution time" />
+    <option name="LAST_COMMIT_MESSAGE" value="[feat] new test on padding shows evidence for a way better approach, both on memory usage and execution time" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -789,13 +807,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
           <url>file://$PROJECT_DIR$/benchmarks/likelihoods.ipynb</url>
-          <line>143</line>
+          <line>158</line>
           <option name="timeStamp" value="67" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
-          <url>file://$PROJECT_DIR$/benchmarks/likelihoods.ipynb</url>
-          <line>146</line>
-          <option name="timeStamp" value="69" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
           <url>file://$PROJECT_DIR$/tests/debug.ipynb</url>
@@ -826,6 +839,16 @@
           <url>file://$PROJECT_DIR$/tests/debug.ipynb</url>
           <line>170</line>
           <option name="timeStamp" value="101" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <url>file://$PROJECT_DIR$/benchmarks/hyperpost.ipynb</url>
+          <line>27</line>
+          <option name="timeStamp" value="118" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <url>file://$PROJECT_DIR$/benchmarks/likelihoods.ipynb</url>
+          <line>164</line>
+          <option name="timeStamp" value="135" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
