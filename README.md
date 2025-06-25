@@ -12,6 +12,22 @@ version of the MagmaClustR library, with the same functionalities and results. T
 
 TODO
 
+To run the code in this repository, you have to setup a Python environment. You can either load the conda environment 
+from env/`environment.yml` or create a new one and install the libraries using the `requirements.txt` file.
+
+```bash
+conda env create -f env/environment.yml
+conda activate MagmaClustPy
+```
+or
+
+```bash
+python -m venv MagmaClustPy
+source MagmaClustPy/bin/activate
+pip install -r env/requirements.txt
+```
+
+
 ---
 
 ## Main differences with the original MagmaClustR library
