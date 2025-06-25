@@ -8,18 +8,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[feat] new test on padding shows evidence for a way better approach, both on memory usage and execution time">
-      <change afterPath="$PROJECT_DIR$/MagmaClustPy/legacy.py" afterDir="false" />
+    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[feat] new padding implemented, providing same result but gain in speed and memory efficiency">
+      <change afterPath="$PROJECT_DIR$/benchmarks/GPyTorch train.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MagmaClustPy/hp_optimisation.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/hp_optimisation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MagmaClustPy/hyperpost.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/hyperpost.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MagmaClustPy/likelihoods.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/likelihoods.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MagmaClustPy/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/MagmaClustPy/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/autodiff.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/autodiff.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/benchmarks/benchmark.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/benchmark.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/benchmarks/benchmark.py" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/benchmark.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/benchmarks/hyperpost.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/hyperpost.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/benchmarks/likelihoods.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/likelihoods.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/benchmarks/preprocess_db.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/preprocess_db.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmarks/benchmark_analysis.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/benchmark_analysis.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/run_benchmarks.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_benchmarks.sh" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -30,8 +26,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Jupyter Notebook" />
         <option value="Python Script" />
+        <option value="Jupyter Notebook" />
       </list>
     </option>
   </component>
@@ -55,12 +51,12 @@
     &quot;assignee&quot;: &quot;SimLej18&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/SimLej18/MagmaClustPy.git",
-    "accountId": "11159a2b-2768-415b-99f8-82247083127d"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/SimLej18/MagmaClustPy.git&quot;,
+    &quot;accountId&quot;: &quot;11159a2b-2768-415b-99f8-82247083127d&quot;
   }
-}]]></component>
+}</component>
   <component name="LLMProjectSettings">
     <option name="turned_on" value="false" />
   </component>
@@ -101,7 +97,7 @@
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -113,11 +109,11 @@
       <recent name="$PROJECT_DIR$/tests/benchmarks" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/benchmarks" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/benchmarks/dummy_datasets" />
       <recent name="$PROJECT_DIR$/tests/MagmaFromScratch" />
       <recent name="$PROJECT_DIR$/tests/MagmaFromScratch/M Step" />
-      <recent name="$PROJECT_DIR$/tests" />
     </key>
   </component>
   <component name="RunManager" selected="Shell Script.All Benchmarks">
@@ -459,7 +455,8 @@
       <workItem from="1749130875503" duration="6851000" />
       <workItem from="1749403828411" duration="5530000" />
       <workItem from="1750337020370" duration="29554000" />
-      <workItem from="1750497452835" duration="3806000" />
+      <workItem from="1750497452835" duration="22585000" />
+      <workItem from="1750856229217" duration="740000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities">
       <option name="closed" value="true" />
@@ -701,7 +698,15 @@
       <option name="project" value="LOCAL" />
       <updated>1750341292263</updated>
     </task>
-    <option name="localTasksCounter" value="31" />
+    <task id="LOCAL-00031" summary="[feat] new padding implemented, providing same result but gain in speed and memory efficiency">
+      <option name="closed" value="true" />
+      <created>1750502599501</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1750502599501</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -719,7 +724,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="[feat] first working version of the e_step, and prepared ground for the m_step" />
     <MESSAGE value="[feat](WiP) New likelihood, advancing towards a working M-step" />
     <MESSAGE value="[feat](WiP) Struggling on m-step and likelihood testing" />
     <MESSAGE value="[feat] new faster jitted kernels" />
@@ -744,7 +748,8 @@
     <MESSAGE value="[feat] forst working prototype with benchmarks" />
     <MESSAGE value="[fix] benchmarks" />
     <MESSAGE value="[feat] new test on padding shows evidence for a way better approach, both on memory usage and execution time" />
-    <option name="LAST_COMMIT_MESSAGE" value="[feat] new test on padding shows evidence for a way better approach, both on memory usage and execution time" />
+    <MESSAGE value="[feat] new padding implemented, providing same result but gain in speed and memory efficiency" />
+    <option name="LAST_COMMIT_MESSAGE" value="[feat] new padding implemented, providing same result but gain in speed and memory efficiency" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

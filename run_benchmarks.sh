@@ -5,7 +5,7 @@
 
 # Install required packages
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r "env/requirements.txt"
 #pip install --upgrade "jax[cuda12]"
 
 #unset LD_LIBRARY_PATH  # Clear LD_LIBRARY_PATH to avoid conflicts
