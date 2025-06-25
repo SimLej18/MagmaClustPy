@@ -8,16 +8,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[feat] new padding implemented, providing same result but gain in speed and memory efficiency">
-      <change afterPath="$PROJECT_DIR$/benchmarks/GPyTorch train.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/benchmarks/autodiff.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/autodiff.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/benchmarks/benchmark.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/benchmark.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/benchmarks/benchmark_analysis.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/benchmarks/benchmark_analysis.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_benchmarks.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_benchmarks.sh" afterDir="false" />
-    </list>
+    <list default="true" id="3cd2574d-7dd1-45e9-9313-35d0440ed17f" name="Changes" comment="[feat] GPyTorch and GPJax benchmarks&#10;[chore] better environment management" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -456,7 +447,7 @@
       <workItem from="1749403828411" duration="5530000" />
       <workItem from="1750337020370" duration="29554000" />
       <workItem from="1750497452835" duration="22585000" />
-      <workItem from="1750856229217" duration="740000" />
+      <workItem from="1750856229217" duration="1537000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit&#10;[feat] Basic linalg backends&#10;[feat] Basic documentation generator&#10;[feat] Basic package build capabilities">
       <option name="closed" value="true" />
@@ -706,7 +697,23 @@
       <option name="project" value="LOCAL" />
       <updated>1750502599501</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="[feat] GPyTorch and GPJax benchmarks&#10;[chore] better environment management">
+      <option name="closed" value="true" />
+      <created>1750856976997</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1750856976997</updated>
+    </task>
+    <task id="LOCAL-00033" summary="[feat] GPyTorch and GPJax benchmarks&#10;[chore] better environment management">
+      <option name="closed" value="true" />
+      <created>1750856986650</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1750856986650</updated>
+    </task>
+    <option name="localTasksCounter" value="34" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -724,7 +731,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="[feat](WiP) New likelihood, advancing towards a working M-step" />
     <MESSAGE value="[feat](WiP) Struggling on m-step and likelihood testing" />
     <MESSAGE value="[feat] new faster jitted kernels" />
     <MESSAGE value="[feat] new jitted SEMagmaKernel, passed all tests" />
@@ -749,7 +755,8 @@
     <MESSAGE value="[fix] benchmarks" />
     <MESSAGE value="[feat] new test on padding shows evidence for a way better approach, both on memory usage and execution time" />
     <MESSAGE value="[feat] new padding implemented, providing same result but gain in speed and memory efficiency" />
-    <option name="LAST_COMMIT_MESSAGE" value="[feat] new padding implemented, providing same result but gain in speed and memory efficiency" />
+    <MESSAGE value="[feat] GPyTorch and GPJax benchmarks&#10;[chore] better environment management" />
+    <option name="LAST_COMMIT_MESSAGE" value="[feat] GPyTorch and GPJax benchmarks&#10;[chore] better environment management" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
