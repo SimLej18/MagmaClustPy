@@ -2,7 +2,7 @@ from jax import jit
 from jax.tree_util import register_pytree_node_class
 from jax import numpy as jnp
 
-from MagmaClustPy.kernels import AbstractKernel
+from Kernax import AbstractKernel
 
 
 @register_pytree_node_class

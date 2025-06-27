@@ -2,7 +2,7 @@ import jax.numpy as jnp
 from jax import jit, vmap
 from jax.scipy.stats.multivariate_normal import logpdf
 
-from MagmaClustPy.linalg import extract_from_full_array, extract_from_full_matrix
+from MagmaClustPy.linalg import extract_from_full_array, extract_from_full_matrix, solve_right_cholesky
 
 
 @jit

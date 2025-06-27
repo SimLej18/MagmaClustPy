@@ -27,12 +27,6 @@ source MagmaClustPy/bin/activate
 pip install -r env/requirements.txt
 ```
 
-You also need to set up the log directory. 
-
-```bash
-mkdir -p benchmarks/logs/
-```
-
 ---
 
 ## Main differences with the original MagmaClustR library

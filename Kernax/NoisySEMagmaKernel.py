@@ -3,7 +3,7 @@ from jax.tree_util import register_pytree_node_class
 from jax import numpy as jnp
 from jax.lax import cond
 
-from MagmaClustPy.kernels import SEMagmaKernel, AbstractKernel
+from Kernax import SEMagmaKernel, AbstractKernel
 
 
 @register_pytree_node_class

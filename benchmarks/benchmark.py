@@ -24,7 +24,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Local imports
-from MagmaClustPy.kernels import SEMagmaKernel, NoisySEMagmaKernel
+from Kernax import SEMagmaKernel, NoisySEMagmaKernel
 from MagmaClustPy.hyperpost import hyperpost
 from MagmaClustPy.hp_optimisation import optimise_hyperparameters
 from MagmaClustPy.utils import preprocess_db
