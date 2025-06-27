@@ -1,19 +1,8 @@
 import jax.numpy as jnp
 from jax import jit, vmap
-from jax.scipy.linalg import cho_factor, cho_solve
 from jax.scipy.stats.multivariate_normal import logpdf
 
-from MagmaClustPy.utils import extract_from_full_array, extract_from_full_matrix
-
-
-@jit
-def solve_right_cholesky(A, B, nugget=jnp.array(1e-10)):
-	""" Solves for X in X @ A = B """
-	# For X @ A = B, we can transpose both sides: A.T @ X.T = B.T
-	# As A and B are symmetric, this simplifies to A @ X.T = B
-	# Then solve for X.T and transpose the result
-	nugget_matrix = jnp.eye(A.shape[0]) * nugget
-	return cho_solve(cho_factor(A + nugget_matrix), B).T
+from MagmaClustPy.linalg import extract_from_full_array, extract_from_full_matrix
 
 
 @jit

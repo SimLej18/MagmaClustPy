@@ -3,7 +3,7 @@ from jax import numpy as jnp
 from jax.scipy.linalg import cho_factor, cho_solve
 from jax.tree_util import tree_flatten
 
-from MagmaClustPy.utils import map_to_full_matrix_batch, map_to_full_array_batch
+from MagmaClustPy.linalg import map_to_full_matrix_batch, map_to_full_array_batch
 
 
 @jit
