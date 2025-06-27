@@ -42,7 +42,7 @@ def run_train(dataset: str, common_input: bool, common_hp: bool, max_iter: int =
 	start = time.time()
 
 	## Data import
-	dataset_file = os.path.join("dummy_datasets", f"{dataset}_{'common_input' if common_input else 'distinct_input'}_{'common_hp' if common_hp else 'distinct_hp'}.csv")
+	dataset_file = os.path.join("../dummy_datasets", f"{dataset}_{'common_input' if common_input else 'distinct_input'}_{'common_hp' if common_hp else 'distinct_hp'}.csv")
 	try:
 		db = pd.read_csv(dataset_file)
 	except FileNotFoundError:
@@ -113,9 +113,9 @@ def run_train(dataset: str, common_input: bool, common_hp: bool, max_iter: int =
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Run MagmaClustPy benchmarks')
-	parser.add_argument('--dataset', type=str, default='large', help='Dataset size: small, medium, large, or huge')
+	parser.add_argument('--dataset', type=str, default='small', help='Dataset size: small, medium, large, or huge')
 	parser.add_argument('--common_input', type=str, default='true', help='Use common input: true or false')
-	parser.add_argument('--common_hp', type=str, default='false', help='Use common hyperparameters: true or false')
+	parser.add_argument('--common_hp', type=str, default='true', help='Use common hyperparameters: true or false')
 	
 	args = parser.parse_args()
 	
