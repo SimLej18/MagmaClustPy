@@ -7,7 +7,7 @@ from MagmaClustPy.utils import map_to_full_matrix_batch, map_to_full_array_batch
 
 
 @jit
-def hyperpost_common_input_common_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_cov, inputs_to_grid=None,
+def hyperpost_shared_input_shared_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_cov, inputs_to_grid=None,
                                      nugget=jnp.array(1e-10)):
 	eye = jnp.eye(task_cov.shape[-1])
 
@@ -36,7 +36,7 @@ def hyperpost_common_input_common_hp(outputs, prior_mean, mean_cov_u, mean_cov_i
 
 
 @jit
-def hyperpost_common_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_covs, inputs_to_grid=None,
+def hyperpost_shared_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_covs, inputs_to_grid=None,
                                        nugget=jnp.array(1e-10)):
 	eye = jnp.broadcast_to(jnp.eye(task_covs.shape[-1]), task_covs.shape)
 
@@ -126,13 +126,13 @@ def hyperpost(inputs, outputs, masks, prior_mean, mean_kernel, task_kernel, all_
 	:param nugget: nugget term to ensure numerical stability. Default is 1e-10
 	:return: a 2-tuple of the posterior mean and covariance
 	"""
-	common_hp = all([hp.ndim == 0 for hp in tree_flatten(task_kernel)[0]])
+	shared_hp = all([hp.ndim == 0 for hp in tree_flatten(task_kernel)[0]])
 
 	# Merge inputs and grid to create all_inputs
 	if all_inputs is None:
 		all_inputs = jnp.sort(jnp.unique(inputs.flatten()))
 
-	common_input = len(inputs[0]) == len(all_inputs)
+	shared_input = len(inputs[0]) == len(all_inputs)
 
 	if grid is None:
 		grid = all_inputs
@@ -140,7 +140,7 @@ def hyperpost(inputs, outputs, masks, prior_mean, mean_kernel, task_kernel, all_
 	else:
 		grid = jnp.sort(jnp.unique(jnp.concatenate([all_inputs, grid])))
 		inputs_to_grid = jnp.searchsorted(grid, all_inputs)
-		common_input = False  # We need to pad the cov matrices to compute on the full grid
+		shared_input = False  # We need to pad the cov matrices to compute on the full grid
 
 	if prior_mean.ndim == 0:
 		prior_mean = jnp.broadcast_to(prior_mean, (len(grid),))
@@ -153,18 +153,18 @@ def hyperpost(inputs, outputs, masks, prior_mean, mean_kernel, task_kernel, all_
 	mean_cov_u, _ = cho_factor(mean_cov + eye * nugget)
 	mean_cov_inv = cho_solve((mean_cov_u, False), eye)
 
-	if common_input:
-		if common_hp:
+	if shared_input:
+		if shared_hp:
 			task_cov = task_kernel(grid)  # Shape: (N, N)
-			return hyperpost_common_input_common_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_cov,
+			return hyperpost_shared_input_shared_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_cov,
 			                                        inputs_to_grid, nugget)
 
 		else:  # distinct HPs, we have to compute every task covariance but no padding is required
 			task_covs = task_kernel(inputs)  # Shape: (M, N, N)
-			return hyperpost_common_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_covs,
+			return hyperpost_shared_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_covs,
 			                                          inputs_to_grid, nugget)
 
-	else:  # No common input: we have to pad and mask
+	else:  # No shared input: we have to pad and mask
 		# task_covs = task_kernel(jnp.broadcast_to(all_inputs, (len(inputs), len(all_inputs))))
 		task_covs = task_kernel(inputs)
 		return hyperpost_distinct_input(outputs, masks, prior_mean, mean_cov_u, mean_cov_inv, task_covs, all_inputs, inputs_to_grid,

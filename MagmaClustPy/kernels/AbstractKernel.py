@@ -135,13 +135,13 @@ class AbstractKernel:
 
 		:param x1: vector array (B, N)
 		:param x2: vector array (B, M)
-		:param kwargs: hyperparameters of the kernel. Each HP that is a scalar will be common to the whole batch, and
+		:param kwargs: hyperparameters of the kernel. Each HP that is a scalar will be shared to the whole batch, and
 		each HP that is a vector will be distinct and thus must have shape (B, )
 		:return: tensor array (B, N, M)
 		"""
 		# vmap(self.compute_matrix)(x1, x2, **kwargs)
-		common_hps = {key: value for key, value in kwargs.items() if jnp.isscalar(value)}
+		shared_hps = {key: value for key, value in kwargs.items() if jnp.isscalar(value)}
 		distinct_hps = {key: value for key, value in kwargs.items() if not jnp.isscalar(value)}
 
-		return vmap(lambda x, y, hps: self.compute_matrix(x, y, **hps, **common_hps), in_axes=(0, 0, 0))(x1, x2,
+		return vmap(lambda x, y, hps: self.compute_matrix(x, y, **hps, **shared_hps), in_axes=(0, 0, 0))(x1, x2,
 		                                                                                                 distinct_hps)

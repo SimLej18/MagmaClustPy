@@ -31,7 +31,7 @@ from MagmaClustPy.utils import preprocess_db
 
 
 
-def run_train(dataset: str, common_input: bool, common_hp: bool, max_iter: int = 25, converg_threshold: float = 1e-3, nugget: jnp.array = jnp.array(1e-6)):
+def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int = 25, converg_threshold: float = 1e-3, nugget: jnp.array = jnp.array(1e-6)):
 	"""
 	Run the training pipeline with the specified parameters.
 	"""
@@ -42,7 +42,7 @@ def run_train(dataset: str, common_input: bool, common_hp: bool, max_iter: int =
 	start = time.time()
 
 	## Data import
-	dataset_file = os.path.join("../dummy_datasets", f"{dataset}_{'common_input' if common_input else 'distinct_input'}_{'common_hp' if common_hp else 'distinct_hp'}.csv")
+	dataset_file = os.path.join("../datasets", f"{dataset}_{'shared_input' if shared_input else 'distinct_input'}_{'shared_hp' if shared_hp else 'distinct_hp'}.csv")
 	try:
 		db = pd.read_csv(dataset_file)
 	except FileNotFoundError:
@@ -67,7 +67,7 @@ def run_train(dataset: str, common_input: bool, common_hp: bool, max_iter: int =
 	prior_mean = jnp.zeros_like(all_inputs_train)
 	mean_kernel = SEMagmaKernel(length_scale=0.9, variance=1.5)
 
-	if common_hp:
+	if shared_hp:
 		task_kernel = NoisySEMagmaKernel(length_scale=0.3, variance=1., noise=-2.5)
 	else:
 		task_kernel = NoisySEMagmaKernel(length_scale=jnp.array([0.3] * padded_inputs_train.shape[0]), variance=jnp.array([1.] * padded_inputs_train.shape[0]), noise=jnp.array([-2.5] * padded_inputs_train.shape[0]))
@@ -114,14 +114,14 @@ def run_train(dataset: str, common_input: bool, common_hp: bool, max_iter: int =
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Run MagmaClustPy benchmarks')
 	parser.add_argument('--dataset', type=str, default='small', help='Dataset size: small, medium, large, or huge')
-	parser.add_argument('--common_input', type=str, default='true', help='Use common input: true or false')
-	parser.add_argument('--common_hp', type=str, default='true', help='Use common hyperparameters: true or false')
+	parser.add_argument('--shared_input', type=str, default='true', help='Use shared input: true or false')
+	parser.add_argument('--shared_hp', type=str, default='true', help='Use shared hyperparameters: true or false')
 	
 	args = parser.parse_args()
 	
 	dataset = args.dataset
-	common_input = args.common_input.lower() == 'true'
-	common_hp = args.common_hp.lower() == 'true'
+	shared_input = args.shared_input.lower() == 'true'
+	shared_hp = args.shared_hp.lower() == 'true'
 
 	grids = {
 		"small": jnp.arange(-10, 10, 0.5),
@@ -136,4 +136,4 @@ if __name__ == "__main__":
 	CONVERG_THRESHOLD = 1e-3
 	NUGGET = jnp.array(1e-5)
 
-	run_train(dataset, common_input, common_hp, max_iter=MAX_ITER, converg_threshold=CONVERG_THRESHOLD, nugget=NUGGET)
+	run_train(dataset, shared_input, shared_hp, max_iter=MAX_ITER, converg_threshold=CONVERG_THRESHOLD, nugget=NUGGET)
