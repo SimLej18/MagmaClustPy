@@ -14,7 +14,7 @@ def generate_dummy_db(M: int, MIN_N: int, MAX_N: int, grid: jnp.array, key: jnp.
 		for n, i in zip(range(n_points), inputs):
 			key, subkey1, subkey2 = jax.random.split(key, 3)
 			data.append({
-				"ID": m,
+				"Task_ID": m,
 				"Input": i.item(),
 				"Output": jax.random.uniform(subkey2, (), jnp.float32, -5, 5).item()
 			})
@@ -58,16 +58,16 @@ def preprocess_db(db: pd.DataFrame):
 	   - index_mappings: a matrix of shape (M, MAX_N) with indices of the inputs in the all_inputs array. Missing inputs for each sequence are represented as -1.
 	"""
 	# Get all distinct inputs
-	db_sorted = db.sort_values(['ID', 'Input'])
-	all_ids = jnp.array(db_sorted["ID"].unique())
+	db_sorted = db.sort_values(['Task_ID', 'Input'])
+	all_ids = jnp.array(db_sorted["Task_ID"].unique())
 	all_inputs = jnp.sort(jnp.array(db_sorted["Input"].unique()))
-	MAX_N = db_sorted.groupby("ID")["Input"].count().max()  # Maximum number of points in a sequence
+	MAX_N = db_sorted.groupby("Task_ID")["Input"].count().max()  # Maximum number of points in a sequence
 	to_fill = jnp.full((MAX_N), jnp.nan)  # Placeholder for padded inputs and outputs
 
 	# Initialise padded inputs, padded outputs and masks
 	padded_inputs, padded_outputs, index_mappings = vmap(extract_id_data, in_axes=(0, None, None, None))(all_ids,
 																											 db_sorted[
-																												 ["ID",
+																												 ["Task_ID",
 																												  "Input",
 																												  "Output"]].values,
 																											 all_inputs,
