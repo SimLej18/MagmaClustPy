@@ -5,6 +5,11 @@ from jax.tree_util import tree_flatten
 
 from MagmaClustPy.linalg import map_to_full_matrix_batch, map_to_full_array_batch
 
+from jax import jit
+from jax import numpy as jnp
+from jax.scipy.linalg import cho_factor, cho_solve
+from jax.tree_util import tree_flatten
+
 
 @jit
 def hyperpost_shared_input_shared_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_cov, inputs_to_grid=None,
@@ -41,9 +46,7 @@ def hyperpost_shared_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov
 	eye = jnp.broadcast_to(jnp.eye(task_covs.shape[-1]), task_covs.shape)
 
 	# Compute task covariance and its Cholesky factor
-	# task_covs_L = vmap(lambda x: cho_factor(x + eye * nugget, lower=True)[0])(task_covs)
 	task_covs_u, _ = cho_factor(task_covs + eye * nugget)
-	# task_cov_inv = vmap(lambda L: cho_solve((L, True), eye))(task_covs_L).sum(axis=0)
 	task_cov_inv = cho_solve((task_covs_u, False), eye)
 
 	task_cov_inv = task_cov_inv.sum(axis=0)
@@ -68,7 +71,8 @@ def hyperpost_shared_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov
 
 
 @jit
-def hyperpost_distinct_input(outputs, mappings, prior_mean, mean_cov_u, mean_cov_inv, task_covs, all_inputs, inputs_to_grid=None,
+def hyperpost_distinct_input(outputs, mappings, prior_mean, mean_cov_u, mean_cov_inv, task_covs, all_inputs,
+                             inputs_to_grid=None,
                              nugget=jnp.array(1e-10)):
 	"""
 	computes the hyperpost on distinct inputs
@@ -124,8 +128,12 @@ def hyperpost(inputs, outputs, masks, prior_mean, mean_kernel, task_kernel, all_
 	:param all_inputs: all distinct inputs. If not provided, it will be computed from the inputs
 	:param grid: the grid on which the GP is defined. If not provided, the GP is defined on all distinct inputs
 	:param nugget: nugget term to ensure numerical stability. Default is 1e-10
+
 	:return: a 2-tuple of the posterior mean and covariance
 	"""
+	# TODO: maybe with multi-output we will have multiple post_mean to compute. We should discuss how to unify the return shape of hyperpost
+	outputs = outputs.squeeze()  # For now this will do the trick
+
 	shared_hp = all([hp.ndim == 0 for hp in tree_flatten(task_kernel)[0]])
 
 	# Merge inputs and grid to create all_inputs
@@ -167,5 +175,5 @@ def hyperpost(inputs, outputs, masks, prior_mean, mean_kernel, task_kernel, all_
 	else:  # No shared input: we have to pad and mask
 		# task_covs = task_kernel(jnp.broadcast_to(all_inputs, (len(inputs), len(all_inputs))))
 		task_covs = task_kernel(inputs)
-		return hyperpost_distinct_input(outputs, masks, prior_mean, mean_cov_u, mean_cov_inv, task_covs, all_inputs, inputs_to_grid,
-		                                nugget)
+		return hyperpost_distinct_input(outputs, masks, prior_mean, mean_cov_u, mean_cov_inv, task_covs, all_inputs,
+		                                inputs_to_grid, nugget)
