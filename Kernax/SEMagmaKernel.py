@@ -15,5 +15,5 @@ class SEMagmaKernel(AbstractKernel):
 		super().__init__(length_scale=length_scale, variance=variance, **kwargs)
 
 	@jit
-	def compute_scalar(self, x1: jnp.ndarray, x2: jnp.ndarray, length_scale=None, variance=None) -> jnp.ndarray:
+	def pairwise_cov(self, x1: jnp.ndarray, x2: jnp.ndarray, length_scale=None, variance=None) -> jnp.ndarray:
 		return jnp.exp(variance - jnp.exp(-length_scale) * jnp.sum((x1 - x2) ** 2) * 0.5)

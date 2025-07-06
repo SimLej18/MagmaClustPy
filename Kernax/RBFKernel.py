@@ -2,6 +2,7 @@ from jax import jit
 from jax.tree_util import register_pytree_node_class
 from jax import numpy as jnp
 
+
 from Kernax import AbstractKernel
 
 
@@ -15,5 +16,5 @@ class RBFKernel(AbstractKernel):
 		super().__init__(length_scale=length_scale, variance=variance, **kwargs)
 
 	@jit
-	def compute_scalar(self, x1: jnp.ndarray, x2: jnp.ndarray, length_scale=None, variance=None) -> jnp.ndarray:
-		return variance * jnp.exp(-0.5 * (x1 - x2) ** 2 / length_scale ** 2)
+	def pairwise_cov(self, x1: jnp.ndarray, x2: jnp.ndarray, length_scale=None, variance=None) -> jnp.ndarray:
+		return variance * jnp.exp(-0.5 * ((x1 - x2) @ (x1 - x2)) / length_scale ** 2)

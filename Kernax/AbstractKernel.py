@@ -1,7 +1,7 @@
 from jax import jit, vmap
-from jax import numpy as jnp
 from jax.tree_util import register_pytree_node_class
 from jax.lax import cond
+import jax.numpy as jnp
 
 
 @register_pytree_node_class
@@ -37,20 +37,23 @@ class AbstractKernel:
 		if x2 is None:
 			x2 = x1
 
+		# Turn scalar inputs into vectors
+		x1, x2 = jnp.atleast_2d(x1), jnp.atleast_2d(x2)
+
 		# Check kwargs
 		kwargs = self.check_kwargs(**kwargs)
 
 		# Call the appropriate method
-		if jnp.isscalar(x1) and jnp.isscalar(x2):
-			return self.compute_scalar_if_not_nan(x1, x2, **kwargs)
-		elif jnp.ndim(x1) == 1 and jnp.isscalar(x2):
-			return self.compute_vector_if_not_nan(x1, x2, **kwargs)
-		elif jnp.isscalar(x1) and jnp.ndim(x2) == 1:
-			return self.compute_vector_if_not_nan(x2, x1, **kwargs)
-		elif jnp.ndim(x1) == 1 and jnp.ndim(x2) == 1:
-			return self.compute_matrix(x1, x2, **kwargs)
+		if jnp.ndim(x1) == 1 and jnp.ndim(x2) == 1:
+			return self.pairwise_cov_if_not_nan(x1, x2, **kwargs)
+		elif jnp.ndim(x1) == 2 and jnp.ndim(x2) == 1:
+			return self.cross_cov_vector_if_not_nan(x1, x2, **kwargs)
+		elif jnp.ndim(x1) == 1 and jnp.ndim(x2) == 2:
+			return self.cross_cov_vector_if_not_nan(x2, x1, **kwargs)
 		elif jnp.ndim(x1) == 2 and jnp.ndim(x2) == 2:
-			return self.compute_batch(x1, x2, **kwargs)
+			return self.cross_cov_matrix(x1, x2, **kwargs)
+		elif jnp.ndim(x1) == 3 and jnp.ndim(x2) == 3:
+			return self.cross_cov_batch(x1, x2, **kwargs)
 		else:
 			return jnp.nan
 
@@ -67,7 +70,7 @@ class AbstractKernel:
 		return cls(*children, skip_check=True)
 
 	@jit
-	def compute_scalar_if_not_nan(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
+	def pairwise_cov_if_not_nan(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
 		"""
 		Returns NaN if either x1 or x2 is NaN, otherwise calls the compute_scalar method.
 
@@ -76,13 +79,13 @@ class AbstractKernel:
 		:param kwargs: hyperparameters of the kernel
 		:return: scalar array
 		"""
-		return cond(jnp.isnan(x1) | jnp.isnan(x2), lambda _: jnp.nan,
-		                lambda _: self.compute_scalar(x1, x2, **kwargs), None)
+		return cond(jnp.any(jnp.isnan(x1) | jnp.isnan(x2)), lambda _: jnp.nan,
+		            lambda _: self.pairwise_cov(x1, x2, **kwargs), None)
 
 	@jit
-	def compute_scalar(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
+	def pairwise_cov(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
 		"""
-		Compute the kernel covariance value between two scalar arrays.
+		Compute the kernel covariance value between two vectors.
 
 		:param x1: scalar array
 		:param x2: scalar array
@@ -92,19 +95,19 @@ class AbstractKernel:
 		return jnp.array(jnp.nan)  # To be overwritten in subclasses
 
 	@jit
-	def compute_vector(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
+	def cross_cov_vector(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
 		"""
-		Compute the kernel covariance value between a vector and a scalar.
+		Compute the kernel cross covariance values between an array of vectors (matrix) and a vector.
 
 		:param x1: vector array (N, )
 		:param x2: scalar array
 		:param kwargs: hyperparameters of the kernel
 		:return: vector array (N, )
 		"""
-		return vmap(lambda x: self.compute_scalar_if_not_nan(x, x2, **kwargs), in_axes=0)(x1)
+		return vmap(lambda x: self.pairwise_cov_if_not_nan(x, x2, **kwargs), in_axes=0)(x1)
 
 	@jit
-	def compute_vector_if_not_nan(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
+	def cross_cov_vector_if_not_nan(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
 		"""
 		Returns an array of NaN if scalar is NaN, otherwise calls the compute_vector method.
 
@@ -113,11 +116,11 @@ class AbstractKernel:
 		:param kwargs: hyperparameters of the kernel
 		:return: vector array (N, )
 		"""
-		return cond(jnp.any(jnp.isnan(x2)), lambda _: x1 * jnp.nan, lambda _: self.compute_vector(x1, x2, **kwargs),
-		                None)
+		return cond(jnp.any(jnp.isnan(x2)), lambda _: jnp.full(len(x1), jnp.nan), lambda _: self.cross_cov_vector(x1, x2, **kwargs),
+		            None)
 
 	@jit
-	def compute_matrix(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
+	def cross_cov_matrix(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
 		"""
 		Compute the kernel covariance matrix between two vector arrays.
 
@@ -126,10 +129,10 @@ class AbstractKernel:
 		:param kwargs: hyperparameters of the kernel
 		:return: matrix array (N, M)
 		"""
-		return vmap(lambda x: self.compute_vector_if_not_nan(x2, x, **kwargs), in_axes=0)(x1)
+		return vmap(lambda x: self.cross_cov_vector_if_not_nan(x2, x, **kwargs), in_axes=0)(x1)
 
 	@jit
-	def compute_batch(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
+	def cross_cov_batch(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
 		"""
 		Compute the kernel covariance matrix between two batched vector arrays.
 
@@ -143,5 +146,4 @@ class AbstractKernel:
 		shared_hps = {key: value for key, value in kwargs.items() if jnp.isscalar(value)}
 		distinct_hps = {key: value for key, value in kwargs.items() if not jnp.isscalar(value)}
 
-		return vmap(lambda x, y, hps: self.compute_matrix(x, y, **hps, **shared_hps), in_axes=(0, 0, 0))(x1, x2,
-		                                                                                                 distinct_hps)
+		return vmap(lambda x, y, hps: self.cross_cov_matrix(x, y, **hps, **shared_hps), in_axes=(0, 0, 0))(x1, x2, distinct_hps)

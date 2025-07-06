@@ -3,8 +3,9 @@ from functools import partial
 import jax
 import jax.numpy as jnp
 import jax.random as jr
+from jax import vmap
 import pandas as pd
-from jax import jit, vmap
+from jax import jit
 
 from MagmaClustPy.linalg import searchsorted_2D_vectorized
 

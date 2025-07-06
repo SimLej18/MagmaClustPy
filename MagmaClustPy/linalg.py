@@ -94,7 +94,7 @@ def searchsorted_2D(vector, matrix):
 		return cond(
 			jnp.any(nonzero_mask),
 			lambda: jnp.array(jnp.sign(diff[first_nonzero_idx]), dtype=jnp.int32),
-			lambda: 0
+			lambda: jnp.array(0, dtype=jnp.int32)
 		)
 
 	@jit
