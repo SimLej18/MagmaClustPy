@@ -26,7 +26,7 @@ def print_info():
 			'Iteration: {i}, Value: {v}, Gradient norm: {e}',
 			i=state.iter_num,
 			v=value,
-			e=otu.tree_l2_norm(grad),
+			e=otu.tree_norm(grad),
 		)
 		return updates, InfoState(iter_num=state.iter_num + 1)
 

@@ -63,7 +63,7 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 
 	## Training
 	# Priors
-	prior_mean = jnp.zeros_like(all_inputs_train)
+	prior_mean = jnp.array(0)
 	mean_kernel = SEMagmaKernel(length_scale=0.9, variance=1.5)
 
 	if shared_hp:
@@ -133,6 +133,6 @@ if __name__ == "__main__":
 	# Default hyper-parameters
 	MAX_ITER = 25
 	CONVERG_THRESHOLD = 1e-3
-	NUGGET = jnp.array(1e-5)
+	NUGGET = jnp.array(1e-3)
 
 	run_train(dataset, shared_input, shared_hp, max_iter=MAX_ITER, converg_threshold=CONVERG_THRESHOLD, nugget=NUGGET)
