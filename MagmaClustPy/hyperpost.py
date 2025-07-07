@@ -131,8 +131,10 @@ def hyperpost(inputs, outputs, masks, prior_mean, mean_kernel, task_kernel, all_
 
 	:return: a 2-tuple of the posterior mean and covariance
 	"""
-	# TODO: maybe with multi-output we will have multiple post_mean to compute. We should discuss how to unify the return shape of hyperpost
-	outputs = outputs.squeeze()  # For now this will do the trick
+	# TODO: add a dimension for clusters in the returned hyperpost
+	# In multi-output, we want to flatten the outputs.
+	# The user should provide a specific Kernel to compute a cross-covariance with the right shape too
+	outputs = outputs.reshape(outputs.shape[0], -1)
 
 	shared_hp = all([hp.ndim == 0 for hp in tree_flatten(task_kernel)[0]])
 

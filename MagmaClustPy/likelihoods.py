@@ -7,6 +7,9 @@ from MagmaClustPy.linalg import extract_from_full_array, extract_from_full_matri
 
 @jit
 def magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mapping, nugget=jnp.array(1e-10)):
+	outputs = outputs.ravel()  # For multi-output, we want to flatten the outputs.
+	mean = mean.ravel()  # As the goal of likelihood is to see if the mean is close to the outputs, we want to flatten it too.
+
 	nugget_matrix = jnp.eye(outputs.shape[0]) * nugget
 
 	eyed_covar = jnp.where(jnp.isnan(covar), jnp.eye(covar.shape[0]), covar)
@@ -53,12 +56,19 @@ def magma_neg_likelihood(kernel, inputs, outputs: jnp.array, mean: jnp.array, me
 
 	:return: the negative log-likelihood (scalar)
 	"""
+	# In multi-output, we want to flatten the outputs.
+	# The user should provide a specific Kernel to compute a cross-covariance with the right shape too
+	outputs = outputs.reshape(outputs.shape[0], -1)
+
+	if mean.ndim == 0:
+		mean = jnp.broadcast_to(mean[None], outputs.shape)
+
 	covar = kernel(inputs)
 
 	# check if we need to vmap
-	if inputs.ndim == 1:
+	if inputs.ndim == 2:
 		return magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mappings, nugget)
-	elif inputs.ndim == 2:
+	elif inputs.ndim == 3:
 		return vmap(magma_neg_likelihood_on_cov, in_axes=(0, 0, None, None, 0, None))(covar, outputs, mean, mean_process_cov, mappings, nugget)
 	else:
 		raise ValueError("inputs must be either 1D or 2D")
