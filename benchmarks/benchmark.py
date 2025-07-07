@@ -33,6 +33,13 @@ from MagmaClustPy.utils import preprocess_db
 def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int = 25, converg_threshold: float = 1e-3, nugget: jnp.array = jnp.array(1e-6)):
 	"""
 	Run the training pipeline with the specified parameters.
+
+	:param dataset: Name of the dataset to use (e.g., 'small', 'medium', 'large', 'huge').
+	:param shared_input: Whether all tasks share the same input grid.
+	:param shared_hp: Whether to use shared hyperparameters across tasks.
+	:param max_iter: Maximum number of iterations for the training loop.
+	:param converg_threshold: Convergence threshold for the training loop.
+	:param nugget: Nugget term for numerical stability in the covariance matrices.
 	"""
 	# Check if cuda is available
 	logging.info(f"Jax launched using {jax.default_backend()} backend.")
@@ -111,6 +118,7 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 
 
 if __name__ == "__main__":
+	# Command-line argument parsing
 	parser = argparse.ArgumentParser(description='Run MagmaClustPy benchmarks')
 	parser.add_argument('--dataset', type=str, default='small', help='Dataset size: small, medium, large, or huge')
 	parser.add_argument('--shared_input', type=str, default='true', help='Use shared input: true or false')

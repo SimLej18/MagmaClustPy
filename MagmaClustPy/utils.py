@@ -16,16 +16,16 @@ def generate_dummy_db(M: int, INPUTS_ID: list[str], MIN_N: int, MAX_N: int, OUTP
 	"""
 	Generate a dummy database with random inputs and outputs, following the expected structure for MagmaClustPy.
 
-	:param M: Number of tasks
-	:param INPUTS_ID: List of input IDs, each representing a dimension of inputs
-	:param MIN_N: Minimum number of inputs per task
-	:param MAX_N: Maximum number of inputs per task
-	:param OUTPUTS_ID: List of output IDs, each representing a dimension of outputs
-	:param GRIDS: List of grids to pick inputs from, one for each input dimension
+	:param M: Number of tasks.
+	:param INPUTS_ID: List of input IDs, each representing a dimension of inputs.
+	:param MIN_N: Minimum number of inputs per task.
+	:param MAX_N: Maximum number of inputs per task.
+	:param OUTPUTS_ID: List of output IDs, each representing a dimension of outputs.
+	:param GRIDS: List of grids to pick inputs from, one for each input dimension.
 	:param drop_output_rate: Probability of dropping an output value. Default is 0, meaning no outputs are dropped.
-	:param key: JAX random key for reproducibility
+	:param key: JAX random key for reproducibility.
 
-	:return: A pandas DataFrame with columns "ID", "Input", "Input_ID", "Output", "Output_ID"
+	:return: A pandas DataFrame with columns "ID", "Input", "Input_ID", "Output", "Output_ID".
 	"""
 	data = []
 
@@ -62,7 +62,9 @@ def generate_dummy_db(M: int, INPUTS_ID: list[str], MIN_N: int, MAX_N: int, OUTP
 def pivot_db(df: pd.DataFrame) -> pd.DataFrame:
 	"""
 	Flatten a dataframe so that every line corresponds to a single observation.
-	For example, if the "Input_ID" column has a multi-index with "x", "y", and "z", the resulting DataFrame will have columns like "Input_x", "Input_y", and "Input_z". If the "Output_ID" column has a multi-index with "a" and "b", the resulting DataFrame will have columns like "Output_a" and "Output_b".
+	For example, if the "Input_ID" column has a multi-index with "x", "y", and "z", the resulting DataFrame will have
+	columns like "Input_x", "Input_y", and "Input_z". If the "Output_ID" column has a multi-index with "a" and "b",
+	the resulting DataFrame will have columns like "Output_a" and "Output_b".
 
 	When an output dimension is missing for a given observation, the corresponding column will be filled with NaN.
 
@@ -106,19 +108,21 @@ def pivot_db(df: pd.DataFrame) -> pd.DataFrame:
 @partial(jit, static_argnames=["max_n_i"])
 def extract_task_data(_id, task_ids, input_values, output_values, all_inputs, max_n_i):
 	"""
-	Extract data for a given task ID from the values array and return a row of padded inputs, padded outputs and index_mappings.
+	Extract data for a given task ID from the values array and return a row of padded inputs, padded outputs and
+	index_mappings.
 
-	:param _id: the task ID to extract data for
-	:param task_ids: the array of the task id of each observation (shape: (N, 1))
-	:param input_values: the input values for all tasks  (shape: (T, N, I))
-	:param output_values: the output values for all tasks (shape: (T, N, O))
-	:param all_inputs: the array of all distinct inputs (shape: (P, I))
-	:param max_n_i: the maximum number of inputs per task (scalar)
+	:param _id: The task ID to extract data for
+	:param task_ids: The array of the task id of each observation (shape: (N, 1))
+	:param input_values: The input values for all tasks  (shape: (T, N, I))
+	:param output_values: The output values for all tasks (shape: (T, N, O))
+	:param all_inputs: The array of all distinct inputs (shape: (P, I))
+	:param max_n_i: The maximum number of inputs per task (scalar)
 
 	:return: a tuple of (padded_input, padded_output, index_mappings)
 	   - padded_input: a matrix of shape (MAX_N_I, I) with inputs for the task, padded with NaNs
 	   - padded_output: a matrix of shape (MAX_N_I, O) with corresponding outputs for each input, padded with NaNs
-	   - index_mappings: a matrix of shape (MAX_N_I,) with indices of the inputs in the all_inputs array. Missing inputs for the task are represented as NaNs.
+	   - index_mappings: a matrix of shape (MAX_N_I,) with indices of the inputs in the all_inputs array. Missing inputs
+	   for the task are represented as NaNs.
 	"""
 	inputs_i = jnp.where(task_ids == _id, input_values, jnp.nan)
 	outputs_i = jnp.where(task_ids == _id, output_values, jnp.nan)
@@ -137,9 +141,14 @@ def extract_task_data(_id, task_ids, input_values, output_values, all_inputs, ma
 
 def preprocess_db(db: pd.DataFrame):
 	"""
+	Turn a pandas DataFrame into a JAX-friendly format, extracting inputs, outputs, and mappings.
 
-	:param db:
-	:return:
+	:param db: Pandas DataFrame with columns "Task_ID", "Input", "Input_ID", "Output", "Output_ID"
+	:return: A tuple containing:
+		- padded_inputs: A JAX array of shape (T, MAX_N, I) with padded inputs for each task.
+		- padded_outputs: A JAX array of shape (T, MAX_N, O) with padded outputs for each task.
+		- index_mappings: A JAX array of shape (T, MAX_N) with indices of the inputs in the all_inputs array.
+		- all_inputs: A JAX array of all distinct inputs of shape (N, I), where N is the number of distinct inputs.
 	"""
 	# Pivot the database
 	db_flat = pivot_db(db)

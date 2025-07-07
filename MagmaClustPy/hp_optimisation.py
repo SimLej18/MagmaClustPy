@@ -15,6 +15,9 @@ class InfoState(NamedTuple):
 
 
 def print_info():
+	"""
+	:return: Basic optax transformation that prints the iteration number, value, and gradient norm at each step.
+	"""
 	def init_fn(params):
 		del params
 		return InfoState(iter_num=0)
@@ -63,6 +66,27 @@ def run_opt(init_params, fun, opt, max_iter, tol):
 
 def optimise_hyperparameters(mean_kernel, task_kernel, inputs, outputs, all_inputs, prior_mean, post_mean, post_cov,
                              mappings, nugget=jnp.array(1e-10), max_iter=100, tol=1e-3, verbose=False):
+	"""
+	Optimise the hyperparameters of the mean and task kernels using L-BFGS and the corrected likelihood of Magma.
+
+	:param mean_kernel: Kernel to optimise the mean process covariance.
+	:param task_kernel: Kernel to optimise the task covariance.
+	:param inputs: Inputs of every point, for every task, padded with NaNs. Shape (T, Max_N_i, I)
+	:param outputs: Outputs of every point, for every task, padded with NaNs. Shape (T, Max_N_i, O)
+	:param all_inputs: all distinct inputs. Shape (N, I)
+	:param prior_mean: prior mean over all_inputs or grid if provided. Shape (N,) or scalar if constant
+	across the domain.
+	:param post_mean: hyperpost mean over all_inputs. Shape (N,)
+	:param post_cov: hyperpost covariance over all_inputs. Shape (N, N)
+	:param mappings: Indices of every input in the all_inputs array, padded with len(all_inputs). Shape (T, Max_N_i)
+	:param nugget: nugget term to ensure numerical stability. Default is 1e-10
+	:param max_iter: maximum number of iterations for the optimisation, default is 100.
+	:param tol: the optimisation stops when the change in likelihood is below this threshold, default is 1e-3.
+	:param verbose: if True, prints the optimisation progress, default is False.
+
+	:return: A tuple of the optimised mean kernel, task kernel, mean log-likelihood, and task log-likelihood.
+	"""
+
 	# Optimise mean kernel
 	if verbose:
 		mean_opt = optax.chain(print_info(), optax.lbfgs())
