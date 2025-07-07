@@ -30,7 +30,6 @@ from MagmaClustPy.hp_optimisation import optimise_hyperparameters
 from MagmaClustPy.utils import preprocess_db
 
 
-
 def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int = 25, converg_threshold: float = 1e-3, nugget: jnp.array = jnp.array(1e-6)):
 	"""
 	Run the training pipeline with the specified parameters.
@@ -51,16 +50,16 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 	# db has 3 columns: ID, Input, Output
 	#
 	# First 90% of IDs are for training, last 10% for testing
-	train_ids = db["ID"].unique()[:int(0.9 * db["ID"].nunique())]
-	test_ids = db["ID"].unique()[int(0.9 * db["ID"].nunique()):]
+	train_ids = db["Task_ID"].unique()[:int(0.9 * db["Task_ID"].nunique())]
+	test_ids = db["Task_ID"].unique()[int(0.9 * db["Task_ID"].nunique()):]
 
-	db_train = db[db["ID"].isin(train_ids)]
-	db_test = db[db["ID"].isin(test_ids)]
+	db_train = db[db["Task_ID"].isin(train_ids)]
+	db_test = db[db["Task_ID"].isin(test_ids)]
 	# N.b: data is already sort by ID and Input in the toy datasets, but in a real case scenario, we would need to sort it
 
 	## Data preprocessing
 	# We need to convert the dataframe into jax arrays
-	all_inputs_train, padded_inputs_train, padded_outputs_train, mappings_train = preprocess_db(db_train)
+	padded_inputs_train, padded_outputs_train, mappings_train, all_inputs_train = preprocess_db(db_train)
 
 	## Training
 	# Priors
