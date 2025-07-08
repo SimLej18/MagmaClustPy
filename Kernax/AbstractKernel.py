@@ -3,9 +3,6 @@ from jax import jit, vmap
 from jax.tree_util import register_pytree_node_class
 from jax.lax import cond
 
-from Kernax.OperatorKernels import SumKernel, ProductKernel
-from Kernax.WrapperKernels import NegKernel
-
 
 @register_pytree_node_class
 class AbstractKernel:
@@ -155,16 +152,21 @@ class AbstractKernel:
 		return vmap(lambda x, y, hps: self.cross_cov_matrix(x, y, **hps, **shared_hps), in_axes=(0, 0, 0))(x1, x2, distinct_hps)
 
 	def __add__(self, other):
+		from Kernax.OperatorKernels import SumKernel
 		return SumKernel(self, other)
 
 	def __radd__(self, other):
+		from Kernax.OperatorKernels import SumKernel
 		return SumKernel(other, self)
 
 	def __neg__(self):
+		from Kernax.WrapperKernels import NegKernel
 		return NegKernel(self)
 
 	def __mul__(self, other):
+		from Kernax.OperatorKernels import ProductKernel
 		return ProductKernel(self, other)
 
 	def __rmul__(self, other):
+		from Kernax.OperatorKernels import ProductKernel
 		return ProductKernel(other, self)

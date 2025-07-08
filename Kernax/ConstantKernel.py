@@ -4,6 +4,7 @@ from jax.tree_util import register_pytree_node_class
 
 from Kernax import AbstractKernel
 
+
 @register_pytree_node_class
 class ConstantKernel(AbstractKernel):
 	def __init__(self, value=1.):
