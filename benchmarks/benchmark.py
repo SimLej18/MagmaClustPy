@@ -24,7 +24,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Local imports
-from Kernax import SEMagmaKernel, NoisySEMagmaKernel
+from Kernax import SEMagmaKernel, DiagKernel, ExpKernel
 from MagmaClustPy.hyperpost import hyperpost
 from MagmaClustPy.hp_optimisation import optimise_hyperparameters
 from MagmaClustPy.utils import preprocess_db
@@ -74,9 +74,12 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 	mean_kernel = SEMagmaKernel(length_scale=0.9, variance=1.5)
 
 	if shared_hp:
-		task_kernel = NoisySEMagmaKernel(length_scale=0.3, variance=1., noise=-2.5)
+		task_kernel = SEMagmaKernel(length_scale=.3, variance=1.) + DiagKernel(ExpKernel(2.5))
 	else:
-		task_kernel = NoisySEMagmaKernel(length_scale=jnp.array([0.3] * padded_inputs_train.shape[0]), variance=jnp.array([1.] * padded_inputs_train.shape[0]), noise=jnp.array([-2.5] * padded_inputs_train.shape[0]))
+		length_scales = jnp.array([0.3] * padded_inputs_train.shape[0])
+		variances = jnp.array([1.] * padded_inputs_train.shape[0])
+		noises = jnp.array([-2.5] * padded_inputs_train.shape[0])
+		task_kernel = SEMagmaKernel(length_scale=length_scales, variance=variances) + DiagKernel(ExpKernel(noises))
 
 	# Training loop
 	prev_mean_llh = jnp.inf

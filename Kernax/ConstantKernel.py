@@ -16,15 +16,13 @@ class ConstantKernel(AbstractKernel):
 		super().__init__(value=value)
 
 	@jit
-	def __call__(self, x1: jnp.ndarray, x2: jnp.ndarray = None) -> jnp.ndarray:
-		if x2 is None:
-			x2 = x1
+	def pairwise_cov(self, x1: jnp.ndarray, x2: jnp.ndarray, value=None) -> jnp.ndarray:
+		"""
+		Compute the kernel covariance value between two vectors.
 
-		if x1.ndim == 1:
-			return self.value
-		elif x1.ndim == 2:
-			return jnp.full((x1.shape[0], x2.shape[0]), self.value)
-		elif x1.ndim == 3:
-			return jnp.full((x1.shape[0], x1.shape[1], x2.shape[1]), self.value)
-		else:
-			raise ValueError(f"Unsupported input shape {x1.shape} for ConstantKernel.")
+		:param x1: scalar array
+		:param x2: scalar array
+		:param value: the value of the constant kernel
+		:return: scalar array
+		"""
+		return value

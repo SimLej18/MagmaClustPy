@@ -145,11 +145,13 @@ class AbstractKernel:
 		each HP that is a vector will be distinct and thus must have shape (B, )
 		:return: tensor array (B, N, M)
 		"""
-		# vmap(self.compute_matrix)(x1, x2, **kwargs)
-		shared_hps = {key: value for key, value in kwargs.items() if jnp.isscalar(value)}
-		distinct_hps = {key: value for key, value in kwargs.items() if not jnp.isscalar(value)}
+		should_be_shared = lambda value: jnp.isscalar(value) or isinstance(value, AbstractKernel)
 
-		return vmap(lambda x, y, hps: self.cross_cov_matrix(x, y, **hps, **shared_hps), in_axes=(0, 0, 0))(x1, x2, distinct_hps)
+		shared_hps = {key: value for key, value in kwargs.items() if should_be_shared(value)}
+		distinct_hps = {key: value for key, value in kwargs.items() if not should_be_shared(value)}
+
+		return vmap(lambda x, y, hps: self.cross_cov_matrix(x, y, **hps, **shared_hps), in_axes=(0, 0, 0))(x1, x2,
+		                                                                                                   distinct_hps)
 
 	def __add__(self, other):
 		from Kernax.OperatorKernels import SumKernel

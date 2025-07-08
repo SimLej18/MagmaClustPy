@@ -16,8 +16,8 @@ class WrapperKernel(AbstractKernel):
 		:param inner_kernel: the inner kernel to wrap
 		:param kwargs: hyperparameters of the kernel
 		"""
-		# If the inner kernel is numerical, we create a ConstantKernel
-		if isinstance(inner_kernel, (int, float)):
+		# If the inner kernel is not a kernel, we try to convert it to a ConstantKernel
+		if not isinstance(inner_kernel, AbstractKernel):
 			inner_kernel = ConstantKernel(value=inner_kernel)
 
 		self.inner_kernel = inner_kernel

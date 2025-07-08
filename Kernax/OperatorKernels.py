@@ -15,10 +15,10 @@ class OperatorKernel(AbstractKernel):
 		:param right_kernel: the right kernel to sum
 		:param left_kernel: the left kernel to sum
 		"""
-		# If any of the kernels is numerical, we create a ConstantKernel
-		if isinstance(left_kernel, (int, float)):
+		# If any of the provided arguments are not kernels, we try to convert them to ConstantKernels
+		if not isinstance(left_kernel, AbstractKernel):
 			left_kernel = ConstantKernel(value=left_kernel)
-		if isinstance(right_kernel, (int, float)):
+		if not isinstance(right_kernel, AbstractKernel):
 			right_kernel = ConstantKernel(value=right_kernel)
 
 		self.left_kernel = left_kernel
