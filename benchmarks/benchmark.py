@@ -71,10 +71,10 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 	## Training
 	# Priors
 	prior_mean = jnp.array(0)
-	mean_kernel = SEMagmaKernel(length_scale=0.9, variance=1.5)
+	mean_kernel = SEMagmaKernel(length_scale=jnp.array(0.9), variance=jnp.array(1.5))
 
 	if shared_hp:
-		task_kernel = SEMagmaKernel(length_scale=.3, variance=1.) + DiagKernel(ExpKernel(2.5))
+		task_kernel = SEMagmaKernel(length_scale=jnp.array(.3), variance=jnp.array(1.)) + DiagKernel(ExpKernel(jnp.array(2.5)))
 	else:
 		length_scales = jnp.array([0.3] * padded_inputs_train.shape[0])
 		variances = jnp.array([1.] * padded_inputs_train.shape[0])
