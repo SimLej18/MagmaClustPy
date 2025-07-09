@@ -8,7 +8,7 @@ from Kernax import AbstractKernel, ConstantKernel
 @register_pytree_node_class
 class OperatorKernel(AbstractKernel):
 	""" Class for kernels that apply some operation on the output of two kernels."""
-	def __init__(self, left_kernel, right_kernel, **kwargs):
+	def __init__(self, left_kernel, right_kernel):
 		"""
 		Instantiates a sum kernel with the given kernels.
 
@@ -21,16 +21,11 @@ class OperatorKernel(AbstractKernel):
 		if not isinstance(right_kernel, AbstractKernel):
 			right_kernel = ConstantKernel(value=right_kernel)
 
-		self.left_kernel = left_kernel
-		self.right_kernel = right_kernel
-
-		super().__init__(**kwargs)
-
+		super().__init__(left_kernel=left_kernel, right_kernel=right_kernel)
 
 @register_pytree_node_class
 class SumKernel(OperatorKernel):
 	""" Sum kernel that sums the outputs of two kernels."""
-
 	@jit
 	def __call__(self, x1: jnp.ndarray, x2: jnp.ndarray = None) -> jnp.ndarray:
 		if x2 is None:

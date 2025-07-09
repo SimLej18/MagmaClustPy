@@ -2,7 +2,24 @@ import jax.numpy as jnp
 from jax import jit
 from jax.tree_util import register_pytree_node_class
 
-from Kernax import AbstractKernel
+from functools import partial
+
+from Kernax import StaticAbstractKernel, AbstractKernel
+
+
+class StaticConstantKernel(StaticAbstractKernel):
+	@classmethod
+	@partial(jit, static_argnums=(0,))
+	def pairwise_cov(cls, kern, x1: jnp.ndarray, x2: jnp.ndarray) -> jnp.ndarray:
+		"""
+		Compute the kernel covariance value between two vectors.
+
+		:param kern: the kernel to use, containing hyperparameters
+		:param x1: scalar array
+		:param x2: scalar array
+		:return: scalar array
+		"""
+		return kern.value  # The constant value is returned regardless of the inputs
 
 
 @register_pytree_node_class
@@ -14,15 +31,4 @@ class ConstantKernel(AbstractKernel):
 		:param value: the value of the constant kernel
 		"""
 		super().__init__(value=value)
-
-	@jit
-	def pairwise_cov(self, x1: jnp.ndarray, x2: jnp.ndarray, value=None) -> jnp.ndarray:
-		"""
-		Compute the kernel covariance value between two vectors.
-
-		:param x1: scalar array
-		:param x2: scalar array
-		:param value: the value of the constant kernel
-		:return: scalar array
-		"""
-		return value
+		self.static_class = StaticConstantKernel

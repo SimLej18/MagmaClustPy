@@ -3,26 +3,38 @@ from jax import jit
 from jax.tree_util import register_pytree_node_class
 from jax.lax import cond
 
-from Kernax import AbstractKernel, ConstantKernel
+from functools import partial
+
+from Kernax import StaticAbstractKernel, AbstractKernel, ConstantKernel
 
 
 @register_pytree_node_class
 class WrapperKernel(AbstractKernel):
 	""" Class for kernels that perform some operation on the output of another "inner" kernel."""
-	def __init__(self, inner_kernel=None, **kwargs):
+	def __init__(self, inner_kernel=None):
 		"""
 		Instantiates a wrapper kernel with the given inner kernel.
 
 		:param inner_kernel: the inner kernel to wrap
-		:param kwargs: hyperparameters of the kernel
 		"""
 		# If the inner kernel is not a kernel, we try to convert it to a ConstantKernel
 		if not isinstance(inner_kernel, AbstractKernel):
 			inner_kernel = ConstantKernel(value=inner_kernel)
 
-		self.inner_kernel = inner_kernel
+		super().__init__(inner_kernel=inner_kernel)
 
-		super().__init__(**kwargs)
+class StaticDiagKernel(StaticAbstractKernel):
+	"""
+	Static kernel that returns a value only if the inputs are equal, otherwise returns 0.
+	This results in a diagonal cross-covariance matrix.
+	"""
+	@classmethod
+	@partial(jit, static_argnums=(0,))
+	def pairwise_cov(cls, kern, x1: jnp.ndarray, x2: jnp.ndarray) -> jnp.ndarray:
+		return cond(jnp.all(x1 == x2),
+		            lambda _: kern.inner_kernel(x1, x2),
+		            lambda _: jnp.array(0.0),
+		            None)
 
 
 @register_pytree_node_class
@@ -31,12 +43,9 @@ class DiagKernel(WrapperKernel):
 	Kernel that returns a value only if the inputs are equal, otherwise returns 0.
 	This results in a diagonal cross-covariance matrix.
 	"""
-	@jit
-	def pairwise_cov(self, x1: jnp.ndarray, x2: jnp.ndarray, **kwargs) -> jnp.ndarray:
-		return cond(jnp.all(x1 == x2),
-		            lambda _: self.inner_kernel(x1, x2),
-		            lambda _: 0.
-		            , None)
+	def __init__(self, inner_kernel=None):
+		super().__init__(inner_kernel=inner_kernel)
+		self.static_class = StaticDiagKernel
 
 
 @register_pytree_node_class
