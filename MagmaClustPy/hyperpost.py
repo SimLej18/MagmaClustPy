@@ -132,7 +132,7 @@ def hyperpost(inputs, outputs, mappings, prior_mean, mean_kernel, task_kernel, a
 	# The user should provide a specific Kernel to compute a cross-covariance with the right shape too
 	outputs = outputs.reshape(outputs.shape[0], -1)
 
-	shared_hp = all([hp.ndim == 0 for hp in tree_flatten(task_kernel)[0]])
+	shared_hp = not task_kernel.has_distinct_hyperparameters(inputs.shape[0])
 
 	# Merge inputs and grid to create all_inputs
 	# TODO: maybe we can assume the user will always provide all_inputs, as it's given by the preprocessing

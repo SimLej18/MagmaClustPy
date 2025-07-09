@@ -132,10 +132,7 @@ class AbstractKernel:
 		x1, x2 = jnp.atleast_1d(x1), jnp.atleast_1d(x2)
 
 		# Check for distinct hyperparameters
-		kernel_has_some_distinct_hps = reduce(
-			lambda acc, param: acc or (hasattr(param, 'shape') and len(param.shape) > 0 and param.shape[0] == x1.shape[0]), self, False)
-
-		if kernel_has_some_distinct_hps and (x1.ndim != 3 or x2.ndim != 3):
+		if self.has_distinct_hyperparameters(x1.shape[0]) and (x1.ndim != 3 or x2.ndim != 3):
 			raise ValueError("Kernel with distinct hyperparameters was called on unbatched inputs. It cannot know which hyperparameter value to use for this element")
 
 		# Call the appropriate method
@@ -156,6 +153,17 @@ class AbstractKernel:
 				f"Invalid input dimensions: x1 has shape {x1.shape}, x2 has shape {x2.shape}. "
 				"Expected 1D, 2D arrays or 3D arrays for batched inputs."
 			)
+
+	def has_distinct_hyperparameters(self, inputs_first_dim) -> bool:
+		"""
+		Checks if the kernel has distinct hyperparameters based on the first dimension of the inputs.
+
+		:param inputs_first_dim: The first dimension of the inputs to check against the hyperparameters.
+		:return: True if the kernel has distinct hyperparameters, False otherwise.
+		"""
+		return reduce(
+			lambda acc, param: acc or (hasattr(param, 'shape') and len(param.shape) > 0 and param.shape[0] == inputs_first_dim)
+			, self, False)
 
 	# Methods to use Kernel as a PyTree
 	def tree_flatten(self):
