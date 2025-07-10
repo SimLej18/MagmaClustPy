@@ -65,7 +65,7 @@ def run_opt(init_params, fun, opt, max_iter, tol):
 
 
 def optimise_hyperparameters(mean_kernel, task_kernel, inputs, outputs, all_inputs, prior_mean, post_mean, post_cov,
-                             mappings, nugget=jnp.array(1e-10), max_iter=100, tol=1e-3, verbose=False):
+                             mappings, jitter=jnp.array(1e-10), max_iter=100, tol=1e-3, verbose=False):
 	"""
 	Optimise the hyperparameters of the mean and task kernels using L-BFGS and the corrected likelihood of Magma.
 
@@ -79,7 +79,7 @@ def optimise_hyperparameters(mean_kernel, task_kernel, inputs, outputs, all_inpu
 	:param post_mean: hyperpost mean over all_inputs. Shape (N,)
 	:param post_cov: hyperpost covariance over all_inputs. Shape (N, N)
 	:param mappings: Indices of every input in the all_inputs array, padded with len(all_inputs). Shape (T, Max_N_i)
-	:param nugget: nugget term to ensure numerical stability. Default is 1e-10
+	:param jitter: jitter term to ensure numerical stability. Default is 1e-10
 	:param max_iter: maximum number of iterations for the optimisation, default is 100.
 	:param tol: the optimisation stops when the change in likelihood is below this threshold, default is 1e-3.
 	:param verbose: if True, prints the optimisation progress, default is False.
@@ -94,7 +94,7 @@ def optimise_hyperparameters(mean_kernel, task_kernel, inputs, outputs, all_inpu
 		mean_opt = optax.lbfgs()
 
 	def mean_fun_wrapper(kern):
-		res = magma_neg_likelihood(kern, all_inputs, post_mean, prior_mean, post_cov, None, nugget=nugget)
+		res = magma_neg_likelihood(kern, all_inputs, post_mean, prior_mean, post_cov, None, jitter=jitter)
 		return res
 
 	new_mean_kernel, _, mean_llh = run_opt(mean_kernel, mean_fun_wrapper, mean_opt, max_iter=max_iter, tol=tol)
@@ -106,7 +106,7 @@ def optimise_hyperparameters(mean_kernel, task_kernel, inputs, outputs, all_inpu
 		task_opt = optax.lbfgs()
 
 	def task_fun_wrapper(kern):
-		res = magma_neg_likelihood(kern, inputs, outputs, post_mean, post_cov, mappings, nugget=nugget).sum()
+		res = magma_neg_likelihood(kern, inputs, outputs, post_mean, post_cov, mappings, jitter=jitter).sum()
 		return res
 
 	new_task_kernel, _, task_llh = run_opt(task_kernel, task_fun_wrapper, task_opt, max_iter=max_iter, tol=tol)

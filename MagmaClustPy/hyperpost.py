@@ -8,11 +8,11 @@ from jax.tree_util import tree_flatten
 
 @jit
 def hyperpost_shared_input_shared_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_cov, inputs_to_grid=None,
-                                     nugget=jnp.array(1e-10)):
+                                     jitter=jnp.array(1e-10)):
 	eye = jnp.eye(task_cov.shape[-1])
 
 	# Compute task covariance and its Cholesky factor
-	task_cov_u, _ = cho_factor(task_cov + eye * nugget)
+	task_cov_u, _ = cho_factor(task_cov + eye * jitter)
 	task_cov_inv = cho_solve((task_cov_u, False), eye)
 
 	if inputs_to_grid is not None:
@@ -37,11 +37,11 @@ def hyperpost_shared_input_shared_hp(outputs, prior_mean, mean_cov_u, mean_cov_i
 
 @jit
 def hyperpost_shared_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_covs, inputs_to_grid=None,
-                                       nugget=jnp.array(1e-10)):
+                                       jitter=jnp.array(1e-10)):
 	eye = jnp.broadcast_to(jnp.eye(task_covs.shape[-1]), task_covs.shape)
 
 	# Compute task covariance and its Cholesky factor
-	task_covs_u, _ = cho_factor(task_covs + eye * nugget)
+	task_covs_u, _ = cho_factor(task_covs + eye * jitter)
 	task_cov_inv = cho_solve((task_covs_u, False), eye)
 
 	task_cov_inv = task_cov_inv.sum(axis=0)
@@ -68,7 +68,7 @@ def hyperpost_shared_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov
 @jit
 def hyperpost_distinct_input(outputs, mappings, prior_mean, mean_cov_u, mean_cov_inv, task_covs, all_inputs,
                              inputs_to_grid=None,
-                             nugget=jnp.array(1e-10)):
+                             jitter=jnp.array(1e-10)):
 	"""
 	computes the hyperpost on distinct inputs
 
@@ -80,7 +80,7 @@ def hyperpost_distinct_input(outputs, mappings, prior_mean, mean_cov_u, mean_cov
 	eyed_task_covs = jnp.where(jnp.isnan(task_covs), small_eye, task_covs)
 
 	# Posterior covariance
-	task_covs_U, _ = cho_factor(eyed_task_covs + small_eye * nugget)
+	task_covs_U, _ = cho_factor(eyed_task_covs + small_eye * jitter)
 	task_covs_inv = cho_solve((task_covs_U, False), small_eye)
 	task_covs_inv -= jnp.where(jnp.isnan(task_covs), small_eye, 0)  # Correction on the diagonal
 	task_covs_inv = map_to_full_matrix_batch(task_covs_inv, all_inputs, mappings)
@@ -109,7 +109,7 @@ def hyperpost_distinct_input(outputs, mappings, prior_mean, mean_cov_u, mean_cov
 
 # General function
 def hyperpost(inputs, outputs, mappings, prior_mean, mean_kernel, task_kernel, all_inputs=None, grid=None,
-              nugget=jnp.array(1e-10)):
+              jitter=jnp.array(1e-10)):
 	"""
 	Computes the posterior mean and covariance of a Magma GP given the inputs, outputs, mappings, prior mean and kernels.
 
@@ -123,7 +123,7 @@ def hyperpost(inputs, outputs, mappings, prior_mean, mean_kernel, task_kernel, a
 	:param all_inputs: all distinct inputs. If not provided, it will be computed from the inputs. Shape (N, I)
 	:param grid: the grid on which the GP is defined. If not provided, the GP is defined on all distinct inputs.
 	Shape (G, I)
-	:param nugget: nugget term to ensure numerical stability. Default is 1e-10
+	:param jitter: jitter term to ensure numerical stability. Default is 1e-10
 
 	:return: a 2-tuple of the posterior mean and covariance
 	"""
@@ -157,22 +157,22 @@ def hyperpost(inputs, outputs, mappings, prior_mean, mean_kernel, task_kernel, a
 
 	# Compute mean covariance and its Cholesky factor
 	mean_cov = mean_kernel(grid, grid)
-	mean_cov_u, _ = cho_factor(mean_cov + eye * nugget)
+	mean_cov_u, _ = cho_factor(mean_cov + eye * jitter)
 	mean_cov_inv = cho_solve((mean_cov_u, False), eye)
 
 	if shared_input:
 		if shared_hp:
 			task_cov = task_kernel(grid)  # Shape: (N, N)
 			return hyperpost_shared_input_shared_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_cov,
-			                                        inputs_to_grid, nugget)
+			                                        inputs_to_grid, jitter)
 
 		else:  # distinct HPs, we have to compute every task covariance but no padding is required
 			task_covs = task_kernel(inputs)  # Shape: (M, N, N)
 			return hyperpost_shared_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_covs,
-			                                          inputs_to_grid, nugget)
+			                                          inputs_to_grid, jitter)
 
 	else:  # No shared input: we have to pad and mapping
 		# task_covs = task_kernel(jnp.broadcast_to(all_inputs, (len(inputs), len(all_inputs))))
 		task_covs = task_kernel(inputs)
 		return hyperpost_distinct_input(outputs, mappings, prior_mean, mean_cov_u, mean_cov_inv, task_covs, all_inputs,
-		                                inputs_to_grid, nugget)
+		                                inputs_to_grid, jitter)

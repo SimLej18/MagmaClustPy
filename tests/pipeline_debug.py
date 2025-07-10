@@ -265,11 +265,11 @@ class NoisySEMagmaKernel(AbstractKernel):
 #%%
 @jit
 def hyperpost_common_input_common_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_cov, inputs_to_grid=None,
-                                     nugget=jnp.array(1e-10)):
+                                     jitter=jnp.array(1e-10)):
 	eye = jnp.eye(task_cov.shape[-1])
 
 	# Compute task covariance and its Cholesky factor
-	task_cov_u, _ = cho_factor(task_cov + eye * nugget)
+	task_cov_u, _ = cho_factor(task_cov + eye * jitter)
 	task_cov_inv = cho_solve((task_cov_u, False), eye)
 
 	if inputs_to_grid is not None:
@@ -293,12 +293,12 @@ def hyperpost_common_input_common_hp(outputs, prior_mean, mean_cov_u, mean_cov_i
 #%%
 @jit
 def hyperpost_common_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_covs, inputs_to_grid=None,
-                                       nugget=jnp.array(1e-10)):
+                                       jitter=jnp.array(1e-10)):
 	eye = jnp.broadcast_to(jnp.eye(task_covs.shape[-1]), task_covs.shape)
 
 	# Compute task covariance and its Cholesky factor
-	# task_covs_L = vmap(lambda x: cho_factor(x + eye * nugget, lower=True)[0])(task_covs)
-	task_covs_u, _ = cho_factor(task_covs + eye * nugget)
+	# task_covs_L = vmap(lambda x: cho_factor(x + eye * jitter, lower=True)[0])(task_covs)
+	task_covs_u, _ = cho_factor(task_covs + eye * jitter)
 	# task_cov_inv = vmap(lambda L: cho_solve((L, True), eye))(task_covs_L).sum(axis=0)
 	task_cov_inv = cho_solve((task_covs_u, False), eye)
 
@@ -324,7 +324,7 @@ def hyperpost_common_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov
 #%%
 @jit
 def hyperpost_distinct_input(outputs, masks, prior_mean, mean_cov_u, mean_cov_inv, task_covs, inputs_to_grid=None,
-                             nugget=jnp.array(1e-10)):
+                             jitter=jnp.array(1e-10)):
 	"""
 	computes the hyperpost on distinct inputs
 
@@ -338,8 +338,8 @@ def hyperpost_distinct_input(outputs, masks, prior_mean, mean_cov_u, mean_cov_in
 	task_covs = jnp.where(masks_2D, task_covs, small_eye)
 
 	# Posterior covariance
-	# task_covs_L = vmap(lambda x: cho_factor(x + small_eye * nugget)[0])(task_covs)
-	task_covs_U, _ = cho_factor(task_covs + small_eye * nugget)
+	# task_covs_L = vmap(lambda x: cho_factor(x + small_eye * jitter)[0])(task_covs)
+	task_covs_U, _ = cho_factor(task_covs + small_eye * jitter)
 	# task_covs_inv = vmap(lambda L: cho_solve((L, False), small_eye))(task_covs_L)
 	task_covs_inv = cho_solve((task_covs_U, False), small_eye)
 	task_covs_inv -= jnp.where(masks_2D, 0, small_eye)  # Correction on the diagonal
@@ -365,7 +365,7 @@ def hyperpost_distinct_input(outputs, masks, prior_mean, mean_cov_u, mean_cov_in
 	return post_mean, post_cov
 #%%
 def hyperpost(inputs, outputs, masks, prior_mean, mean_kernel, task_kernel, all_inputs=None, grid=None,
-              nugget=jnp.array(1e-10)):
+              jitter=jnp.array(1e-10)):
 	"""
 	Computes the posterior mean and covariance of a Magma GP given the inputs, outputs, masks, prior mean and kernels.
 
@@ -378,7 +378,7 @@ def hyperpost(inputs, outputs, masks, prior_mean, mean_kernel, task_kernel, all_
 	:param task_kernel: kernel of the task process, with hyperparameters loaded as attributes
 	:param all_inputs: all distinct inputs. If not provided, it will be computed from the inputs
 	:param grid: the grid on which the GP is defined. If not provided, the GP is defined on all distinct inputs
-	:param nugget: nugget term to ensure numerical stability. Default is 1e-10
+	:param jitter: jitter term to ensure numerical stability. Default is 1e-10
 	:return: a 2-tuple of the posterior mean and covariance
 	"""
 	common_input = jnp.all(masks)
@@ -407,24 +407,24 @@ def hyperpost(inputs, outputs, masks, prior_mean, mean_kernel, task_kernel, all_
 
 	# Compute mean covariance and its Cholesky factor
 	mean_cov = mean_kernel(grid, grid)
-	mean_cov_u, _ = cho_factor(mean_cov + eye * nugget)
+	mean_cov_u, _ = cho_factor(mean_cov + eye * jitter)
 	mean_cov_inv = cho_solve((mean_cov_u, False), eye)
 
 	if common_input:
 		if common_hp:
 			task_cov = task_kernel(grid)  # Shape: (N, N)
-			res = hyperpost_common_input_common_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_cov, inputs_to_grid, nugget)
+			res = hyperpost_common_input_common_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_cov, inputs_to_grid, jitter)
 			return res
 
 		else:  # distinct HPs, we have to compute every task covariance but no padding is required
 			task_covs = task_kernel(inputs)  # Shape: (M, N, N)
-			res = hyperpost_common_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_covs, inputs_to_grid, nugget)
+			res = hyperpost_common_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_covs, inputs_to_grid, jitter)
 			return res
 
 	else:  # No common input: we have to pad and mask
 		# task_covs = task_kernel(jnp.broadcast_to(all_inputs, (len(inputs), len(all_inputs))))
 		task_covs = task_kernel(inputs)
-		res = hyperpost_distinct_input(outputs, masks, prior_mean, mean_cov_u, mean_cov_inv, task_covs, inputs_to_grid, nugget)
+		res = hyperpost_distinct_input(outputs, masks, prior_mean, mean_cov_u, mean_cov_inv, task_covs, inputs_to_grid, jitter)
 		return res
 #%% md
 # ---
@@ -434,17 +434,17 @@ def hyperpost(inputs, outputs, masks, prior_mean, mean_kernel, task_kernel, all_
 from MagmaClustPy.likelihoods import magma_neg_likelihood
 #%%
 @jit
-def solve_right_cholesky(A, B, nugget=jnp.array(1e-10)):
+def solve_right_cholesky(A, B, jitter=jnp.array(1e-10)):
 	""" Solves for X in X @ A = B """
 	# For X @ A = B, we can transpose both sides: A.T @ X.T = B.T
 	# As A and B are symmetric, this simplifies to A @ X.T = B
 	# Then solve for X.T and transpose the result
-	nugget_matrix = jnp.eye(A.shape[0]) * nugget
-	return cho_solve(cho_factor(A + nugget_matrix), B).T
+	jitter_matrix = jnp.eye(A.shape[0]) * jitter
+	return cho_solve(cho_factor(A + jitter_matrix), B).T
 #%%
 @jit
-def magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mask=None, nugget=jnp.array(1e-10)):
-	nugget_matrix = jnp.eye(outputs.shape[0]) * nugget
+def magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mask=None, jitter=jnp.array(1e-10)):
+	jitter_matrix = jnp.eye(outputs.shape[0]) * jitter
 
 	if mask is not None:
 		# Mask the covariance matrix and outputs
@@ -456,10 +456,10 @@ def magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mask=Non
 
 
 	# Compute log-likelihood
-	multiv_neg_log_lik = -logpdf(outputs, mean, covar + nugget_matrix)
+	multiv_neg_log_lik = -logpdf(outputs, mean, covar + jitter_matrix)
 
 	# Compute correction term
-	correction = 0.5 * jnp.trace(solve_right_cholesky(covar, mean_process_cov, nugget=nugget))
+	correction = 0.5 * jnp.trace(solve_right_cholesky(covar, mean_process_cov, jitter=jitter))
 
 	if mask is not None:
 		# Correct log-likelihood for padding
@@ -480,7 +480,7 @@ def magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mask=Non
 #%%
 @jit
 def magma_neg_likelihood(kernel, inputs, outputs: jnp.array, mean: jnp.array, mean_process_cov: jnp.array, mask=None,
-                         nugget=jnp.array(1e-10)):
+                         jitter=jnp.array(1e-10)):
 	"""
 	Computes the MAGMA log-likelihood.
 
@@ -490,7 +490,7 @@ def magma_neg_likelihood(kernel, inputs, outputs: jnp.array, mean: jnp.array, me
 	:param outputs: the observed values (shape (N, ))
 	:param mean: the mean over the inputs (scalar or vector of shape (N, ))
 	:param mean_process_cov: the hypper-posterior mean process covariance (matrix K^t)
-	:param nugget: the nugget, for numerical stability
+	:param jitter: the jitter, for numerical stability
 
 	:return: the negative log-likelihood (scalar)
 	"""
@@ -498,10 +498,10 @@ def magma_neg_likelihood(kernel, inputs, outputs: jnp.array, mean: jnp.array, me
 
 	# check if we need to vmap
 	if inputs.ndim == 1:
-		return magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mask, nugget)
+		return magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mask, jitter)
 	elif inputs.ndim == 2:
 		return vmap(magma_neg_likelihood_on_cov, in_axes=(0, 0, None, None, 0, None))(covar, outputs, mean,
-		                                                                              mean_process_cov, mask, nugget)
+		                                                                              mean_process_cov, mask, jitter)
 	else:
 		raise ValueError("inputs must be either 1D or 2D")
 #%% md
@@ -560,7 +560,7 @@ def run_opt(init_params, fun, opt, max_iter, tol):
 	return final_params, final_state, final_llh
 #%%
 def optimise_hyperparameters(mean_kernel, task_kernel, inputs, outputs, all_inputs, prior_mean, post_mean, post_cov,
-                             masks, nugget=jnp.array(1e-10), max_iter=100, tol=1e-3, verbose=False):
+                             masks, jitter=jnp.array(1e-10), max_iter=100, tol=1e-3, verbose=False):
 	# Optimise mean kernel
 	if verbose:
 		mean_opt = optax.chain(print_info(),
@@ -577,7 +577,7 @@ def optimise_hyperparameters(mean_kernel, task_kernel, inputs, outputs, all_inpu
 		mean_opt = optax.lbfgs()
 
 	def mean_fun_wrapper(kern):
-		res = magma_neg_likelihood(kern, all_inputs, post_mean, prior_mean, post_cov, mask=None, nugget=nugget)
+		res = magma_neg_likelihood(kern, all_inputs, post_mean, prior_mean, post_cov, mask=None, jitter=jitter)
 		return res
 
 	new_mean_kernel, _, mean_llh = run_opt(mean_kernel, mean_fun_wrapper, mean_opt, max_iter=max_iter, tol=tol)
@@ -598,7 +598,7 @@ def optimise_hyperparameters(mean_kernel, task_kernel, inputs, outputs, all_inpu
 		task_opt = optax.lbfgs()
 
 	def task_fun_wrapper(kern):
-		res = magma_neg_likelihood(kern, inputs, outputs, post_mean, post_cov, mask=masks, nugget=nugget).sum()
+		res = magma_neg_likelihood(kern, inputs, outputs, post_mean, post_cov, mask=masks, jitter=jitter).sum()
 		return res
 
 	new_task_kernel, _, task_llh = run_opt(task_kernel, task_fun_wrapper, task_opt, max_iter=max_iter, tol=tol)
@@ -613,7 +613,7 @@ def optimise_hyperparameters(mean_kernel, task_kernel, inputs, outputs, all_inpu
 #%%
 MAX_ITER = 25
 CONVERG_THRESHOLD = 1e-10
-nugget = jnp.array(1e-5)
+jitter = jnp.array(1e-5)
 verbose = False
 #%%
 dataset = "small"
@@ -678,10 +678,10 @@ conv_ratio = jnp.inf
 for i in range(MAX_ITER):
 	print(f"Iteration {i:4}\tLlhs: {prev_mean_llh:12.4f}, {prev_task_llh:12.4f}\tConv. Ratio: {conv_ratio:.5f}\t\n\tMean: {mean_kernel}\t\n\tTask: {task_kernel}")
 	# e-step: compute hyper-posterior
-	post_mean, post_cov = hyperpost(padded_inputs_train, padded_outputs_train, masks_train, prior_mean, mean_kernel, task_kernel, all_inputs=all_inputs_train, nugget=nugget)
+	post_mean, post_cov = hyperpost(padded_inputs_train, padded_outputs_train, masks_train, prior_mean, mean_kernel, task_kernel, all_inputs=all_inputs_train, jitter=jitter)
 
 	# m-step: update hyperparameters
-	mean_kernel, task_kernel, mean_llh, task_llh = optimise_hyperparameters(mean_kernel, task_kernel, padded_inputs_train, padded_outputs_train, all_inputs_train, prior_mean, post_mean, post_cov, masks_train, nugget=nugget, verbose=verbose)
+	mean_kernel, task_kernel, mean_llh, task_llh = optimise_hyperparameters(mean_kernel, task_kernel, padded_inputs_train, padded_outputs_train, all_inputs_train, prior_mean, post_mean, post_cov, masks_train, jitter=jitter, verbose=verbose)
 
 	# Check convergence
 	if i > 0:

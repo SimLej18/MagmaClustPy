@@ -30,7 +30,7 @@ from MagmaClustPy.hp_optimisation import optimise_hyperparameters
 from MagmaClustPy.utils import preprocess_db
 
 
-def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int = 25, converg_threshold: float = 1e-3, nugget: jnp.array = jnp.array(1e-6)):
+def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int = 25, converg_threshold: float = 1e-3, jitter: jnp.array = jnp.array(1e-6)):
 	"""
 	Run the training pipeline with the specified parameters.
 
@@ -39,7 +39,7 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 	:param shared_hp: Whether to use shared hyperparameters across tasks.
 	:param max_iter: Maximum number of iterations for the training loop.
 	:param converg_threshold: Convergence threshold for the training loop.
-	:param nugget: Nugget term for numerical stability in the covariance matrices.
+	:param jitter: jitter term for numerical stability in the covariance matrices.
 	"""
 	# Check if cuda is available
 	logging.info(f"Jax launched using {jax.default_backend()} backend.")
@@ -89,10 +89,10 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 	for i in range(max_iter):
 		logging.info(f"Iteration {i:4}\tLlhs: {prev_mean_llh:12.4f}, {prev_task_llh:12.4f}\tConv. Ratio: {conv_ratio:.5f}\t\n\tMean: {mean_kernel}\t\n\tTask: {task_kernel}")
 		# e-step: compute hyper-posterior
-		post_mean, post_cov = hyperpost(padded_inputs_train, padded_outputs_train, mappings_train, prior_mean, mean_kernel, task_kernel, all_inputs=all_inputs_train, nugget=nugget)
+		post_mean, post_cov = hyperpost(padded_inputs_train, padded_outputs_train, mappings_train, prior_mean, mean_kernel, task_kernel, all_inputs=all_inputs_train, jitter=jitter)
 
 		# m-step: update hyperparameters
-		mean_kernel, task_kernel, mean_llh, task_llh = optimise_hyperparameters(mean_kernel, task_kernel, padded_inputs_train, padded_outputs_train, all_inputs_train, prior_mean, post_mean, post_cov, mappings_train, nugget=nugget, verbose=VERBOSE)
+		mean_kernel, task_kernel, mean_llh, task_llh = optimise_hyperparameters(mean_kernel, task_kernel, padded_inputs_train, padded_outputs_train, all_inputs_train, prior_mean, post_mean, post_cov, mappings_train, jitter=jitter, verbose=VERBOSE)
 
 		# Check for NaN values and stop early
 		#if jnp.isnan(mean_llh) or jnp.isnan(task_llh):
@@ -144,6 +144,6 @@ if __name__ == "__main__":
 	# Default hyper-parameters
 	MAX_ITER = 25
 	CONVERG_THRESHOLD = 1e-3
-	NUGGET = jnp.array(1e-3)
+	jitter = jnp.array(1e-3)
 
-	run_train(dataset, shared_input, shared_hp, max_iter=MAX_ITER, converg_threshold=CONVERG_THRESHOLD, nugget=NUGGET)
+	run_train(dataset, shared_input, shared_hp, max_iter=MAX_ITER, converg_threshold=CONVERG_THRESHOLD, jitter=jitter)

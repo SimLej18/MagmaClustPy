@@ -6,12 +6,12 @@ from MagmaClustPy.linalg import extract_from_full_array, extract_from_full_matri
 
 
 @jit
-def magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mapping, nugget=jnp.array(1e-10)):
+def magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mapping, jitter=jnp.array(1e-10)):
 	outputs = outputs.ravel()  # For multi-output, we want to flatten the outputs.
 	mean = mean.ravel()  # As the goal of likelihood is to see if the mean is close to the outputs, we want to flatten
 	# it too.
 
-	nugget_matrix = jnp.eye(outputs.shape[0]) * nugget
+	jitter_matrix = jnp.eye(outputs.shape[0]) * jitter
 
 	eyed_covar = jnp.where(jnp.isnan(covar), jnp.eye(covar.shape[0]), covar)
 	zeroed_outputs = jnp.nan_to_num(outputs)
@@ -24,10 +24,10 @@ def magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mapping,
 		eyed_mean_cov = jnp.where(jnp.isnan(covar), jnp.eye(covar.shape[0]), mean_process_cov)
 
 	# Compute log-likelihood
-	multiv_neg_log_lik = -logpdf(zeroed_outputs, zeroed_mean, eyed_covar + nugget_matrix)
+	multiv_neg_log_lik = -logpdf(zeroed_outputs, zeroed_mean, eyed_covar + jitter_matrix)
 
 	# Compute correction term
-	correction = 0.5 * jnp.trace(solve_right_cholesky(eyed_covar, eyed_mean_cov, nugget=nugget))
+	correction = 0.5 * jnp.trace(solve_right_cholesky(eyed_covar, eyed_mean_cov, jitter=jitter))
 
 	# Compute padding corrections
 	# The logpdf is computed as:
@@ -44,7 +44,7 @@ def magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mapping,
 
 @jit
 def magma_neg_likelihood(kernel, inputs, outputs: jnp.array, mean: jnp.array, mean_process_cov: jnp.array,
-                         mappings: jnp.array, nugget=jnp.array(1e-10)):
+                         mappings: jnp.array, jitter=jnp.array(1e-10)):
 	"""
 	Computes the MAGMA log-likelihood.
 
@@ -55,7 +55,7 @@ def magma_neg_likelihood(kernel, inputs, outputs: jnp.array, mean: jnp.array, me
 	:param mean_process_cov: The hyperpost mean process covariance (matrix K^t)
 	:param mappings: The indices of the inputs in the all_inputs array, if we compute the likelihood on a batch of
 	inputs. Shape (T, Max_N_i)
-	:param nugget: Nugget term to ensure numerical stability. Default is 1e-10
+	:param jitter: jitter term to ensure numerical stability. Default is 1e-10
 
 	:return: The negative log-likelihood (scalar)
 	"""
@@ -70,9 +70,9 @@ def magma_neg_likelihood(kernel, inputs, outputs: jnp.array, mean: jnp.array, me
 
 	# check if we need to vmap
 	if inputs.ndim == 2:
-		return magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mappings, nugget)
+		return magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mappings, jitter)
 	elif inputs.ndim == 3:
 		return vmap(magma_neg_likelihood_on_cov, in_axes=(0, 0, None, None, 0, None))(covar, outputs, mean,
-		                                                                              mean_process_cov, mappings, nugget)
+		                                                                              mean_process_cov, mappings, jitter)
 	else:
 		raise ValueError("inputs must be either 1D or 2D")
