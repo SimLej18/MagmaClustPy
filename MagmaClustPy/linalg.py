@@ -3,21 +3,67 @@ This module provides linear algebra functions for MagmaClustPy.
 """
 
 import jax.numpy as jnp
+import jax.scipy as jsc
 from jax import jit, vmap
 from jax.lax import cond, while_loop
-from jax.scipy.linalg import cho_factor, cho_solve
 
 
 # --- Linear algebra functions ---
 
 @jit
-def solve_right_cholesky(A, B, nugget=jnp.array(1e-10)):
+def cho_factor(cov, initial_jitter=1e-10, max_jitter=1.0):
+	"""
+	Wrapper around jax.scipy.linalg.cho_factor to compute the Cholesky factorisation of a covariance matrix.
+	It always returns the upper factorisation, as we use the upper version of Cholesky in the whole codebase.
+	It automatically gets the smallest jitter that makes the covariance matrix PSD
+
+	:param cov: Covariance matrix to factorise
+	:param initial_jitter: Initial jitter value to start with (default is 1e-10)
+	:param max_jitter: Maximum jitter value to try (default is 1.0)
+
+	:return: Cholesky upper factorisation of the covariance matrix. If it still contains NaNs, it means the matrix is still not PSD even with the maximum jitter.
+	"""
+
+	def condition(jitter):
+		# Go on while the factorisation fails AND the jitter is under the limit
+		cov_jittered = cov + jitter * jnp.eye(len(cov))
+		chol_result = jsc.linalg.cho_factor(cov_jittered)[0]
+		has_nan = jnp.any(jnp.isnan(chol_result))
+		return jnp.logical_and(has_nan, jitter < max_jitter)
+
+	def body(jitter):
+		print("Current jitter:", jitter)
+		new_jitter = jitter * 10
+		return new_jitter
+
+	# Initialisation
+	final_jitter = while_loop(condition, body, initial_jitter)
+
+	# Return the factorisation with the final jitter
+	return jsc.linalg.cho_factor(cov + final_jitter * jnp.eye(len(cov)))[0]
+
+
+@jit
+def cho_solve(factor, B):
+	"""
+	Wrapper around jax.scipy.linalg.cho_solve to solve the linear system A @ X = B, as we always use the upper version
+	of Cholesky factorisation in the whole codebase.
+
+	:param factor: The Cholesky factorisation of the covariance matrix A (output of cho_factor).
+	:param B: The right-hand side matrix or vector to solve for.
+
+	:return: The solution X such that A @ X = B.
+	"""
+	return cho_solve((factor, False), B)
+
+
+@jit
+def solve_right_cholesky(A, B):
 	""" Solves for X in X @ A = B """
 	# For X @ A = B, we can transpose both sides: A.T @ X.T = B.T
 	# As A and B are symmetric, this simplifies to A @ X.T = B
 	# Then solve for X.T and transpose the result
-	nugget_matrix = jnp.eye(A.shape[0]) * nugget
-	return cho_solve(cho_factor(A + nugget_matrix), B).T
+	return cho_solve(cho_factor(A), B).T
 
 
 # --- Mapping functions ---
