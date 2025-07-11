@@ -1,3 +1,5 @@
+from typing import Optional, Union
+
 import jax.numpy as jnp
 from jax import jit, vmap
 from jax.scipy.stats.multivariate_normal import logpdf
@@ -6,7 +8,9 @@ from MagmaClustPy.linalg import extract_from_full_array, extract_from_full_matri
 
 
 @jit
-def magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mapping, jitter=jnp.array(1e-10)):
+def magma_neg_likelihood_on_cov(covar: jnp.ndarray, outputs: jnp.ndarray, mean: jnp.ndarray,
+                                mean_process_cov: jnp.ndarray, mapping: Optional[jnp.ndarray],
+                                jitter: jnp.ndarray = jnp.array(1e-10)) -> jnp.ndarray:
 	outputs = outputs.ravel()  # For multi-output, we want to flatten the outputs.
 	mean = mean.ravel()  # As the goal of likelihood is to see if the mean is close to the outputs, we want to flatten
 	# it too.
@@ -43,8 +47,10 @@ def magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mapping,
 
 
 @jit
-def magma_neg_likelihood(kernel, inputs, outputs: jnp.array, mappings: jnp.array, mean: jnp.array,
-                         mean_process_cov: jnp.array, jitter=jnp.array(1e-10)):
+def magma_neg_likelihood(kernel, inputs: jnp.ndarray, outputs: jnp.ndarray, mappings: Optional[jnp.ndarray],
+                         mean: jnp.ndarray,
+                         mean_process_cov: jnp.ndarray, jitter: jnp.ndarray = jnp.array(1e-10)) -> Union[
+	jnp.ndarray, float]:
 	"""
 	Computes the MAGMA log-likelihood.
 
@@ -73,6 +79,7 @@ def magma_neg_likelihood(kernel, inputs, outputs: jnp.array, mappings: jnp.array
 		return magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mappings, jitter)
 	elif inputs.ndim == 3:
 		return vmap(magma_neg_likelihood_on_cov, in_axes=(0, 0, None, None, 0, None))(covar, outputs, mean,
-		                                                                              mean_process_cov, mappings, jitter)
+		                                                                              mean_process_cov, mappings,
+		                                                                              jitter)
 	else:
 		raise ValueError("inputs must be either 1D or 2D")

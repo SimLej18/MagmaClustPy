@@ -1,10 +1,15 @@
+from typing import Tuple, Optional
+
 from jax import jit
 from jax import numpy as jnp
+
 from MagmaClustPy.linalg import cho_factor, cho_solve, map_to_full_matrix_batch, map_to_full_array_batch
 
 
 @jit
-def hyperpost_shared_input_shared_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_cov, inputs_to_grid=None):
+def hyperpost_shared_input_shared_hp(outputs: jnp.ndarray, prior_mean: jnp.ndarray, mean_cov_u: jnp.ndarray,
+                                     mean_cov_inv: jnp.ndarray, task_cov: jnp.ndarray,
+                                     inputs_to_grid: Optional[jnp.ndarray] = None) -> Tuple[jnp.ndarray, jnp.ndarray]:
 	eye = jnp.eye(task_cov.shape[-1])
 
 	# Compute task covariance and its Cholesky factor
@@ -32,7 +37,9 @@ def hyperpost_shared_input_shared_hp(outputs, prior_mean, mean_cov_u, mean_cov_i
 
 
 @jit
-def hyperpost_shared_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_covs, inputs_to_grid=None):
+def hyperpost_shared_input_distinct_hp(outputs: jnp.ndarray, prior_mean: jnp.ndarray, mean_cov_u: jnp.ndarray,
+                                       mean_cov_inv: jnp.ndarray, task_covs: jnp.ndarray,
+                                       inputs_to_grid: Optional[jnp.ndarray] = None) -> Tuple[jnp.ndarray, jnp.ndarray]:
 	eye = jnp.broadcast_to(jnp.eye(task_covs.shape[-1]), task_covs.shape)
 
 	# Compute task covariance and its Cholesky factor
@@ -61,8 +68,10 @@ def hyperpost_shared_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov
 
 
 @jit
-def hyperpost_distinct_input(outputs, mappings, all_inputs, prior_mean, mean_cov_u, mean_cov_inv, task_covs,
-                             inputs_to_grid=None):
+def hyperpost_distinct_input(outputs: jnp.ndarray, mappings: jnp.ndarray, all_inputs: jnp.ndarray,
+                             prior_mean: jnp.ndarray, mean_cov_u: jnp.ndarray, mean_cov_inv: jnp.ndarray,
+                             task_covs: jnp.ndarray,
+                             inputs_to_grid: Optional[jnp.ndarray] = None) -> Tuple[jnp.ndarray, jnp.ndarray]:
 	"""
 	computes the hyperpost on distinct inputs
 
@@ -102,7 +111,9 @@ def hyperpost_distinct_input(outputs, mappings, all_inputs, prior_mean, mean_cov
 
 
 # General function
-def hyperpost(inputs, outputs, mappings, all_inputs, prior_mean, mean_kernel, task_kernel, grid=None):
+def hyperpost(inputs: jnp.ndarray, outputs: jnp.ndarray, mappings: jnp.ndarray, all_inputs: jnp.ndarray,
+              prior_mean: jnp.ndarray, mean_kernel, task_kernel, grid: Optional[jnp.ndarray] = None) -> Tuple[
+	jnp.ndarray, jnp.ndarray]:
 	"""
 	Computes the posterior mean and covariance of a Magma GP given the inputs, outputs, mappings, prior mean and kernels.
 

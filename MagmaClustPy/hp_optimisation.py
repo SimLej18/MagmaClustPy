@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import NamedTuple, Tuple, Any
 
 import chex
 import jax
@@ -14,10 +14,11 @@ class InfoState(NamedTuple):
 	iter_num: chex.Numeric
 
 
-def print_info():
+def print_info() -> optax.GradientTransformationExtraArgs:
 	"""
 	:return: Basic optax transformation that prints the iteration number, value, and gradient norm at each step.
 	"""
+
 	def init_fn(params):
 		del params
 		return InfoState(iter_num=0)
@@ -37,7 +38,8 @@ def print_info():
 
 
 # Adapted from optax doc (https://optax.readthedocs.io/en/latest/_collections/examples/lbfgs.html#l-bfgs-solver)
-def run_opt(init_params, fun, opt, max_iter, tol):
+def run_opt(init_params: Any, fun: Any, opt: optax.GradientTransformation, max_iter: int, tol: float) -> Tuple[
+	Any, Any, jnp.ndarray]:
 	value_and_grad_fun = optax.value_and_grad_from_state(fun)
 
 	def step(carry):
@@ -64,8 +66,11 @@ def run_opt(init_params, fun, opt, max_iter, tol):
 	return final_params, final_state, final_llh
 
 
-def optimise_hyperparameters(mean_kernel, task_kernel, inputs, outputs, mappings, all_inputs, prior_mean, post_mean,
-                             post_cov, jitter=jnp.array(1e-10), max_iter=100, tol=1e-3, verbose=False):
+def optimise_hyperparameters(mean_kernel: Any, task_kernel: Any, inputs: jnp.ndarray, outputs: jnp.ndarray,
+                             mappings: jnp.ndarray, all_inputs: jnp.ndarray, prior_mean: jnp.ndarray,
+                             post_mean: jnp.ndarray,
+                             post_cov: jnp.ndarray, jitter: jnp.ndarray = jnp.array(1e-10), max_iter: int = 100,
+                             tol: float = 1e-3, verbose: bool = False) -> Tuple[Any, Any, jnp.ndarray, jnp.ndarray]:
 	"""
 	Optimise the hyperparameters of the mean and task kernels using L-BFGS and the corrected likelihood of Magma.
 

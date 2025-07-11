@@ -8,12 +8,14 @@ VERBOSE = False
 
 # Standard library imports
 import os
+
 os.environ['JAX_ENABLE_X64'] = str(USE_X64).lower()
 import time
 import argparse
 
 # JAX imports
 import jax
+
 jax.config.update("jax_disable_jit", not USE_JIT)
 jax.config.update("jax_debug_nans", DEBUG_NANS)
 import jax.numpy as jnp
@@ -21,6 +23,7 @@ import jax.numpy as jnp
 # Other imports
 import pandas as pd
 import logging
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Local imports
@@ -31,7 +34,7 @@ from MagmaClustPy.utils import preprocess_db
 
 
 def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int = 25, converg_threshold: float = 1e-3,
-              jitter: jnp.array = jnp.array(1e-4)):
+              jitter: jnp.ndarray = jnp.array(1e-4)) -> None:
 	"""
 	Run the training pipeline with the specified parameters.
 
@@ -49,7 +52,8 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 	start = time.time()
 
 	## Data import
-	dataset_file = os.path.join("../datasets", f"{dataset}_{'shared_input' if shared_input else 'distinct_input'}_{'shared_hp' if shared_hp else 'distinct_hp'}.csv")
+	dataset_file = os.path.join("../datasets",
+	                            f"{dataset}_{'shared_input' if shared_input else 'distinct_input'}_{'shared_hp' if shared_hp else 'distinct_hp'}.csv")
 	try:
 		db = pd.read_csv(dataset_file)
 	except FileNotFoundError:
@@ -75,7 +79,8 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 	mean_kernel = SEMagmaKernel(length_scale=jnp.array(0.9), variance=jnp.array(1.5))
 
 	if shared_hp:
-		task_kernel = SEMagmaKernel(length_scale=jnp.array(.3), variance=jnp.array(1.)) + DiagKernel(ExpKernel(jnp.array(2.5)))
+		task_kernel = SEMagmaKernel(length_scale=jnp.array(.3), variance=jnp.array(1.)) + DiagKernel(
+			ExpKernel(jnp.array(2.5)))
 	else:
 		length_scales = jnp.array([0.3] * padded_inputs_train.shape[0])
 		variances = jnp.array([1.] * padded_inputs_train.shape[0])
@@ -88,33 +93,43 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 	conv_ratio = jnp.inf
 
 	for i in range(max_iter):
-		logging.info(f"Iteration {i:4}\tLlhs: {prev_mean_llh:12.4f}, {prev_task_llh:12.4f}\tConv. Ratio: {conv_ratio:.5f}\t\n\tMean: {mean_kernel}\t\n\tTask: {task_kernel}")
+		logging.info(
+			f"Iteration {i:4}\tLlhs: {prev_mean_llh:12.4f}, {prev_task_llh:12.4f}\tConv. Ratio: {conv_ratio:.5f}\t\n\tMean: {mean_kernel}\t\n\tTask: {task_kernel}")
 		# e-step: compute hyper-posterior
-		post_mean, post_cov = hyperpost(padded_inputs_train, padded_outputs_train, mappings_train, all_inputs_train, prior_mean, mean_kernel, task_kernel)
+		post_mean, post_cov = hyperpost(padded_inputs_train, padded_outputs_train, mappings_train, all_inputs_train,
+		                                prior_mean, mean_kernel, task_kernel)
 
 		# m-step: update hyperparameters
-		mean_kernel, task_kernel, mean_llh, task_llh = optimise_hyperparameters(mean_kernel, task_kernel, padded_inputs_train, padded_outputs_train, mappings_train, all_inputs_train, prior_mean, post_mean, post_cov, jitter=jitter, verbose=VERBOSE)
+		mean_kernel, task_kernel, mean_llh, task_llh = optimise_hyperparameters(mean_kernel, task_kernel,
+		                                                                        padded_inputs_train,
+		                                                                        padded_outputs_train, mappings_train,
+		                                                                        all_inputs_train, prior_mean, post_mean,
+		                                                                        post_cov, jitter=jitter,
+		                                                                        verbose=VERBOSE)
 
 		# Check for NaN values and stop early
-		#if jnp.isnan(mean_llh) or jnp.isnan(task_llh):
+		# if jnp.isnan(mean_llh) or jnp.isnan(task_llh):
 		#	logging.error(f"NaN detected at iteration {i}. Stopping training.")
 		#	break
 
 		# Check convergence
 		if i > 0:
-			conv_ratio = jnp.abs((prev_mean_llh + prev_task_llh) - (mean_llh + task_llh)) / jnp.abs(prev_mean_llh + prev_task_llh)
+			conv_ratio = jnp.abs((prev_mean_llh + prev_task_llh) - (mean_llh + task_llh)) / jnp.abs(
+				prev_mean_llh + prev_task_llh)
 			if conv_ratio < converg_threshold:
-				logging.info(f"Convergence reached after {i+1} iterations.\tLlhs: {mean_llh:12.4f}, {task_llh:12.4f}\n\tMean: {mean_kernel}\n\tTask: {task_kernel}")
+				logging.info(
+					f"Convergence reached after {i + 1} iterations.\tLlhs: {mean_llh:12.4f}, {task_llh:12.4f}\n\tMean: {mean_kernel}\n\tTask: {task_kernel}")
 				break
 
 		if i == max_iter - 1:
-			logging.warning(f"Maximum number of iterations reached.\nLast modif: {jnp.abs(prev_mean_llh - mean_llh).item()} & {jnp.abs(prev_task_llh - task_llh).item()}")
+			logging.warning(
+				f"Maximum number of iterations reached.\nLast modif: {jnp.abs(prev_mean_llh - mean_llh).item()} & {jnp.abs(prev_task_llh - task_llh).item()}")
 
 		prev_mean_llh = mean_llh
 		prev_task_llh = task_llh
 
 	## Prediction
-	#TODO
+	# TODO
 
 	## End timer
 	end = time.time()
@@ -127,9 +142,9 @@ if __name__ == "__main__":
 	parser.add_argument('--dataset', type=str, default='small', help='Dataset size: small, medium, large, or huge')
 	parser.add_argument('--shared_input', type=str, default='true', help='Use shared input: true or false')
 	parser.add_argument('--shared_hp', type=str, default='true', help='Use shared hyperparameters: true or false')
-	
+
 	args = parser.parse_args()
-	
+
 	dataset = args.dataset
 	shared_input = args.shared_input.lower() == 'true'
 	shared_hp = args.shared_hp.lower() == 'true'

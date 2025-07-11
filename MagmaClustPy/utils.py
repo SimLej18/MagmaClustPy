@@ -1,18 +1,19 @@
 from functools import partial
+from typing import List, Tuple
 
 import jax
 import jax.numpy as jnp
 import jax.random as jr
-from jax import vmap
 import pandas as pd
 from jax import jit
+from jax import vmap
 
 from MagmaClustPy.linalg import searchsorted_2D_vectorized
 
 
-def generate_dummy_db(M: int, INPUTS_ID: list[str], MIN_N: int, MAX_N: int, OUTPUTS_ID: list[str],
-                      GRIDS: list[jnp.array], OUTPUT_RANGES: list[jnp.array], drop_output_rate: float = 0.,
-                      key: jnp.array = jax.random.PRNGKey(42)):
+def generate_dummy_db(M: int, INPUTS_ID: List[str], MIN_N: int, MAX_N: int, OUTPUTS_ID: List[str],
+                      GRIDS: List[jnp.ndarray], OUTPUT_RANGES: List[jnp.ndarray], drop_output_rate: float = 0.,
+                      key: jnp.ndarray = jax.random.PRNGKey(42)) -> pd.DataFrame:
 	"""
 	Generate a dummy database with random inputs and outputs, following the expected structure for MagmaClustPy.
 
@@ -106,7 +107,8 @@ def pivot_db(df: pd.DataFrame) -> pd.DataFrame:
 
 
 @partial(jit, static_argnames=["max_n_i"])
-def extract_task_data(_id, task_ids, input_values, output_values, all_inputs, max_n_i):
+def extract_task_data(_id: int, task_ids: jnp.ndarray, input_values: jnp.ndarray, output_values: jnp.ndarray,
+                      all_inputs: jnp.ndarray, max_n_i: int) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
 	"""
 	Extract data for a given task ID from the values array and return a row of padded inputs, padded outputs and
 	index_mappings.
@@ -139,7 +141,7 @@ def extract_task_data(_id, task_ids, input_values, output_values, all_inputs, ma
 	return padded_input, padded_output, index_mappings
 
 
-def preprocess_db(db: pd.DataFrame):
+def preprocess_db(db: pd.DataFrame) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
 	"""
 	Turn a pandas DataFrame into a JAX-friendly format, extracting inputs, outputs, and mappings.
 

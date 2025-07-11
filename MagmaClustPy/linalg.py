@@ -6,13 +6,13 @@ import jax.numpy as jnp
 import jax.scipy as jsc
 from jax import jit, vmap
 from jax.lax import cond, while_loop
-from jax.scipy.stats.multivariate_normal import logpdf as jax_logpdf
 
 
 # --- Linear algebra functions ---
 
 @jit
-def cho_factor(cov, init_jitter=jnp.array(1e-10), max_jitter=jnp.array(1.0)):
+def cho_factor(cov: jnp.ndarray, init_jitter: jnp.ndarray = jnp.array(1e-10),
+               max_jitter: jnp.ndarray = jnp.array(1.0)) -> jnp.ndarray:
 	"""
 	Wrapper around jax.scipy.linalg.cho_factor to compute the Cholesky factorisation of a covariance matrix.
 	It always returns the upper factorisation, as we use the upper version of Cholesky in the whole codebase.
@@ -57,7 +57,7 @@ def cho_factor(cov, init_jitter=jnp.array(1e-10), max_jitter=jnp.array(1.0)):
 
 
 @jit
-def cho_solve(factor, B):
+def cho_solve(factor: jnp.ndarray, B: jnp.ndarray) -> jnp.ndarray:
 	"""
 	Wrapper around jax.scipy.linalg.cho_solve to solve the linear system A @ X = B, as we always use the upper version
 	of Cholesky factorisation in the whole codebase.
@@ -71,7 +71,7 @@ def cho_solve(factor, B):
 
 
 @jit
-def solve_right_cholesky(A, B, jitter=jnp.array(1e-10)):
+def solve_right_cholesky(A: jnp.ndarray, B: jnp.ndarray, jitter: jnp.ndarray = jnp.array(1e-10)) -> jnp.ndarray:
 	""" Solves for X in X @ A = B """
 	# Note: this function doesn't use an adaptative jitter, because it's used in the optimisation process.
 	# As jax autodiff doesn't support while loops, we cannot use the cho_factor function with an adaptative jitter.
@@ -86,48 +86,48 @@ def solve_right_cholesky(A, B, jitter=jnp.array(1e-10)):
 # --- Mapping functions ---
 
 @jit
-def map_to_full_matrix(dense_cov, all_inputs, mapping):
+def map_to_full_matrix(dense_cov: jnp.ndarray, all_inputs: jnp.ndarray, mapping: jnp.ndarray) -> jnp.ndarray:
 	return jnp.full((len(all_inputs), len(all_inputs)), jnp.nan).at[jnp.ix_(mapping, mapping)].set(dense_cov)
 
 
 @jit
-def map_to_full_matrix_batch(dense_covs, all_inputs, mappings):
+def map_to_full_matrix_batch(dense_covs: jnp.ndarray, all_inputs: jnp.ndarray, mappings: jnp.ndarray) -> jnp.ndarray:
 	return vmap(map_to_full_matrix, in_axes=(0, None, 0))(dense_covs, all_inputs, mappings)
 
 
 @jit
-def map_to_full_array(dense_array, all_inputs, mapping):
+def map_to_full_array(dense_array: jnp.ndarray, all_inputs: jnp.ndarray, mapping: jnp.ndarray) -> jnp.ndarray:
 	return jnp.full((len(all_inputs)), jnp.nan).at[mapping].set(dense_array)
 
 
 @jit
-def map_to_full_array_batch(dense_arrays, all_inputs, mappings):
+def map_to_full_array_batch(dense_arrays: jnp.ndarray, all_inputs: jnp.ndarray, mappings: jnp.ndarray) -> jnp.ndarray:
 	return vmap(map_to_full_array, in_axes=(0, None, 0))(dense_arrays, all_inputs, mappings)
 
 
 @jit
-def extract_from_full_array(full_array, like, mapping):
+def extract_from_full_array(full_array: jnp.ndarray, like: jnp.ndarray, mapping: jnp.ndarray) -> jnp.ndarray:
 	return jnp.where(mapping < len(full_array), full_array[mapping], jnp.nan)
 
 
 @jit
-def extract_from_full_array_batch(full_arrays, like, mappings):
+def extract_from_full_array_batch(full_arrays: jnp.ndarray, like: jnp.ndarray, mappings: jnp.ndarray) -> jnp.ndarray:
 	return vmap(extract_from_full_array, in_axes=(0, None, 0))(full_arrays, like, mappings)
 
 
 @jit
-def extract_from_full_matrix(full_matrix, like, mapping):
+def extract_from_full_matrix(full_matrix: jnp.ndarray, like: jnp.ndarray, mapping: jnp.ndarray) -> jnp.ndarray:
 	mg = jnp.meshgrid(mapping, mapping)
 	return jnp.where((mg[0] < len(full_matrix)) & (mg[1] < len(full_matrix)), full_matrix[mg[0], mg[1]], jnp.nan)
 
 
 @jit
-def extract_from_full_matrix_batch(full_matrices, like, mappings):
+def extract_from_full_matrix_batch(full_matrices: jnp.ndarray, like: jnp.ndarray, mappings: jnp.ndarray) -> jnp.ndarray:
 	return vmap(extract_from_full_matrix, in_axes=(0, None, 0))(full_matrices, like, mappings)
 
 
 @jit
-def searchsorted_2D(vector, matrix):
+def searchsorted_2D(vector: jnp.ndarray, matrix: jnp.ndarray) -> jnp.ndarray:
 	"""
 	Search along axis 1 for a vector in a matrix. If found, return the index of the vector.
 	If not found, return len(matrix).
