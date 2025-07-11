@@ -61,7 +61,7 @@ def hyperpost_shared_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov
 
 
 @jit
-def hyperpost_distinct_input(outputs, mappings, prior_mean, mean_cov_u, mean_cov_inv, task_covs, all_inputs,
+def hyperpost_distinct_input(outputs, mappings, all_inputs, prior_mean, mean_cov_u, mean_cov_inv, task_covs,
                              inputs_to_grid=None):
 	"""
 	computes the hyperpost on distinct inputs
@@ -102,18 +102,18 @@ def hyperpost_distinct_input(outputs, mappings, prior_mean, mean_cov_u, mean_cov
 
 
 # General function
-def hyperpost(inputs, outputs, mappings, prior_mean, mean_kernel, task_kernel, all_inputs=None, grid=None):
+def hyperpost(inputs, outputs, mappings, all_inputs, prior_mean, mean_kernel, task_kernel, grid=None):
 	"""
 	Computes the posterior mean and covariance of a Magma GP given the inputs, outputs, mappings, prior mean and kernels.
 
 	:param inputs: Inputs of every point, for every task, padded with NaNs. Shape (T, Max_N_i, I)
 	:param outputs: Outputs of every point, for every task, padded with NaNs. Shape (T, Max_N_i, O)
 	:param mappings: Indices of every input in the all_inputs array, padded with len(all_inputs). Shape (T, Max_N_i)
+	:param all_inputs: all distinct inputs. Shape (N, I)
 	:param prior_mean: prior mean over all_inputs or grid if provided. Shape (N,) or (G,), or scalar if constant
 	across the domain.
 	:param mean_kernel: Kernel to be used to compute the mean covariance.
 	:param task_kernel: Kernel to be used to compute the task covariance.
-	:param all_inputs: all distinct inputs. If not provided, it will be computed from the inputs. Shape (N, I)
 	:param grid: the grid on which the GP is defined. If not provided, the GP is defined on all distinct inputs.
 	Shape (G, I)
 
@@ -127,10 +127,6 @@ def hyperpost(inputs, outputs, mappings, prior_mean, mean_kernel, task_kernel, a
 	shared_hp = not task_kernel.has_distinct_hyperparameters(inputs.shape[0])
 
 	# Merge inputs and grid to create all_inputs
-	# TODO: maybe we can assume the user will always provide all_inputs, as it's given by the preprocessing
-	if all_inputs is None:
-		all_inputs = jnp.sort(jnp.unique(inputs, axis=0))
-
 	shared_input = len(inputs[0]) == len(all_inputs)
 
 	if grid is None:
@@ -166,5 +162,5 @@ def hyperpost(inputs, outputs, mappings, prior_mean, mean_kernel, task_kernel, a
 	else:  # No shared input: we have to pad and mapping
 		# task_covs = task_kernel(jnp.broadcast_to(all_inputs, (len(inputs), len(all_inputs))))
 		task_covs = task_kernel(inputs)
-		return hyperpost_distinct_input(outputs, mappings, prior_mean, mean_cov_u, mean_cov_inv, task_covs,
-		                                all_inputs, inputs_to_grid)
+		return hyperpost_distinct_input(outputs, mappings, all_inputs, prior_mean, mean_cov_u, mean_cov_inv,
+		                                task_covs, inputs_to_grid)

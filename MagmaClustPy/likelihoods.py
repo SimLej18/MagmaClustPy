@@ -43,17 +43,17 @@ def magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mapping,
 
 
 @jit
-def magma_neg_likelihood(kernel, inputs, outputs: jnp.array, mean: jnp.array, mean_process_cov: jnp.array,
-                         mappings: jnp.array, jitter=jnp.array(1e-10)):
+def magma_neg_likelihood(kernel, inputs, outputs: jnp.array, mappings: jnp.array, mean: jnp.array,
+                         mean_process_cov: jnp.array, jitter=jnp.array(1e-10)):
 	"""
 	Computes the MAGMA log-likelihood.
 
 	:param kernel: The kernel to optimise. This kernel is used to compute the covariance (matrix `S`).
 	:param inputs: Inputs on which to compute the covariance matrix (shape (N, I)) or (T, Max_N_i, I).
 	:param outputs: The observed values for each input (shape (N, O) or (T, Max_N_i, O)).
+	:param mappings: The indices of the inputs in the all_inputs array, if we compute the likelihood on a batch of
 	:param mean: The mean over the inputs (scalar or vector of shape (N,)).
 	:param mean_process_cov: The hyperpost mean process covariance (matrix K^t)
-	:param mappings: The indices of the inputs in the all_inputs array, if we compute the likelihood on a batch of
 	inputs. Shape (T, Max_N_i)
 	:param jitter: jitter term to ensure numerical stability. Default is 1e-10
 
