@@ -6,41 +6,54 @@ import jax.numpy as jnp
 import jax.scipy as jsc
 from jax import jit, vmap
 from jax.lax import cond, while_loop
+from jax.scipy.stats.multivariate_normal import logpdf as jax_logpdf
 
 
 # --- Linear algebra functions ---
 
 @jit
-def cho_factor(cov, initial_jitter=1e-10, max_jitter=1.0):
+def cho_factor(cov, init_jitter=jnp.array(1e-10), max_jitter=jnp.array(1.0)):
 	"""
 	Wrapper around jax.scipy.linalg.cho_factor to compute the Cholesky factorisation of a covariance matrix.
 	It always returns the upper factorisation, as we use the upper version of Cholesky in the whole codebase.
 	It automatically gets the smallest jitter that makes the covariance matrix PSD
 
 	:param cov: Covariance matrix to factorise
-	:param initial_jitter: Initial jitter value to start with (default is 1e-10)
+	:param init_jitter: Initial jitter value to start with (default is 1e-10)
 	:param max_jitter: Maximum jitter value to try (default is 1.0)
 
 	:return: Cholesky upper factorisation of the covariance matrix. If it still contains NaNs, it means the matrix is still not PSD even with the maximum jitter.
 	"""
 
-	def condition(jitter):
-		# Go on while the factorisation fails AND the jitter is under the limit
-		cov_jittered = cov + jitter * jnp.eye(len(cov))
-		chol_result = jsc.linalg.cho_factor(cov_jittered)[0]
-		has_nan = jnp.any(jnp.isnan(chol_result))
+	def condition(carry):
+		factorisation, jitter, _ = carry
+
+		has_nan = jnp.any(jnp.isnan(factorisation))
 		return jnp.logical_and(has_nan, jitter < max_jitter)
 
-	def body(jitter):
-		print("Current jitter:", jitter)
+	def body(carry):
+		factorisation, jitter, eye = carry
 		new_jitter = jitter * 10
-		return new_jitter
+
+		factorisation = jsc.linalg.cho_factor(cov + new_jitter * eye)[0]
+
+		return factorisation, new_jitter, eye
+
+	if cov.ndim == 2:
+		eye = jnp.eye(cov.shape[-1])
+	elif cov.ndim == 3:
+		eye = jnp.eye(cov.shape[-1])[None, :, :]
+	else:
+		raise ValueError(f"Invalid covariance matrix shape: {cov.shape}. Expected 2D or 3D array.")
+
+	init_factorisation = jsc.linalg.cho_factor(cov + init_jitter * eye)[0]
 
 	# Initialisation
-	final_jitter = while_loop(condition, body, initial_jitter)
+	carry = (init_factorisation, init_jitter, eye)
+	final_factorisation, _, _ = while_loop(condition, body, carry)
 
 	# Return the factorisation with the final jitter
-	return jsc.linalg.cho_factor(cov + final_jitter * jnp.eye(len(cov)))[0]
+	return final_factorisation
 
 
 @jit
@@ -54,16 +67,20 @@ def cho_solve(factor, B):
 
 	:return: The solution X such that A @ X = B.
 	"""
-	return cho_solve((factor, False), B)
+	return jsc.linalg.cho_solve((factor, False), B)
 
 
 @jit
-def solve_right_cholesky(A, B):
+def solve_right_cholesky(A, B, jitter=jnp.array(1e-10)):
 	""" Solves for X in X @ A = B """
+	# Note: this function doesn't use an adaptative jitter, because it's used in the optimisation process.
+	# As jax autodiff doesn't support while loops, we cannot use the cho_factor function with an adaptative jitter.
+
 	# For X @ A = B, we can transpose both sides: A.T @ X.T = B.T
 	# As A and B are symmetric, this simplifies to A @ X.T = B
 	# Then solve for X.T and transpose the result
-	return cho_solve(cho_factor(A), B).T
+	jitter_matrix = jnp.eye(A.shape[0]) * jitter
+	return jsc.linalg.cho_solve(jsc.linalg.cho_factor(A + jitter_matrix), B).T
 
 
 # --- Mapping functions ---
