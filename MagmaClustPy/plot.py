@@ -5,3 +5,5 @@ This script will feature functions used to plot various elements of the Magma(Cl
 * samples from the posterior distribution
 * ...
 """
+
+# TODO
