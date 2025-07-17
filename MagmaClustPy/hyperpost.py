@@ -5,13 +5,15 @@ from jax import numpy as jnp
 
 from MagmaClustPy.linalg import cho_factor, cho_solve, map_to_full_matrix_batch, map_to_full_array_batch
 
+import os
+os.environ['JAX_DISABLE_JIT'] = 'True'
+
 
 @jit
 def hyperpost_shared_input_shared_hp(outputs: jnp.ndarray, prior_mean: jnp.ndarray, mean_cov_u: jnp.ndarray,
                                      mean_cov_inv: jnp.ndarray, task_cov: jnp.ndarray,
                                      inputs_to_grid: Optional[jnp.ndarray] = None) -> Tuple[jnp.ndarray, jnp.ndarray]:
 	eye = jnp.eye(task_cov.shape[-1])
-
 	# Compute task covariance and its Cholesky factor
 	task_cov_u = cho_factor(task_cov)
 	task_cov_inv = cho_solve(task_cov_u, eye)
@@ -78,7 +80,6 @@ def hyperpost_distinct_input(outputs: jnp.ndarray, mappings: jnp.ndarray, all_in
 
 	# task_covs is padded with NaNs. Replace them by their corresponding identity rows/cols
 	eyed_task_covs = jnp.where(jnp.isnan(task_covs), small_eye, task_covs)
-
 	# Posterior covariance
 	task_covs_U = cho_factor(eyed_task_covs)
 	task_covs_inv = cho_solve(task_covs_U, small_eye)
@@ -96,7 +97,7 @@ def hyperpost_distinct_input(outputs: jnp.ndarray, mappings: jnp.ndarray, all_in
 	weighted_prior_mean = cho_solve(mean_cov_u, prior_mean)
 	mapped_outputs = jnp.nan_to_num(map_to_full_array_batch(outputs, all_inputs, mappings))
 	padded_task_covs_U = map_to_full_matrix_batch(task_covs_U, all_inputs, mappings)
-	eyed_task_covs_U = jnp.where(jnp.isnan(padded_task_covs_U), jnp.eye(all_inputs.shape[-1]), padded_task_covs_U)
+	eyed_task_covs_U = jnp.where(jnp.isnan(padded_task_covs_U), jnp.eye(all_inputs.shape[0]), padded_task_covs_U)
 	weighted_tasks = cho_solve(eyed_task_covs_U, mapped_outputs).sum(axis=0)
 
 	if inputs_to_grid is not None:
@@ -141,8 +142,8 @@ def hyperpost(inputs: jnp.ndarray, outputs: jnp.ndarray, mappings: jnp.ndarray, 
 		grid = all_inputs
 		inputs_to_grid = None
 	else:
-		grid = jnp.sort(jnp.unique(jnp.concatenate([all_inputs, grid])))
-		inputs_to_grid = jnp.searchsorted(grid, all_inputs)
+		grid = jnp.sort(jnp.unique(jnp.concatenate([all_inputs, grid]), axis=0), axis=0)	# Add axis=0 to keep a 2D array because jnp.unique() flatten all_inputs and grid by default.
+		inputs_to_grid = jnp.searchsorted(grid.squeeze(), all_inputs.squeeze()) 	# Add .squeeze() to get grid and all_inputs as 1D arrays (required for jnp.searchsorted).
 		shared_input = False  # We need to pad the cov matrices to compute on the full grid
 
 	if prior_mean.ndim == 0:
