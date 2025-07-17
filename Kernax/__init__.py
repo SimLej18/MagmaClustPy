@@ -1,7 +1,9 @@
 from .AbstractKernel import StaticAbstractKernel, AbstractKernel
 from .RBFKernel import StaticRBFKernel, RBFKernel
 from .LinearKernel import StaticLinearKernel, LinearKernel
-# from .MaternKernel import StaticMaternKernel, MaternKernel
+from .MaternKernels import StaticMatern12Kernel, Matern12Kernel
+from .MaternKernels import StaticMatern32Kernel, Matern32Kernel
+from .MaternKernels import StaticMatern52Kernel, Matern52Kernel
 from .SEMagmaKernel import StaticSEMagmaKernel, SEMagmaKernel
 from .PeriodicKernel import StaticPeriodicKernel, PeriodicKernel
 from .RationalQuadraticKernel import StaticRationalQuadraticKernel, RationalQuadraticKernel
@@ -16,6 +18,8 @@ __all__ = ["StaticAbstractKernel", "AbstractKernel",
            "StaticLinearKernel", "LinearKernel",
            "StaticPeriodicKernel", "PeriodicKernel",
            "StaticRationalQuadraticKernel", "RationalQuadraticKernel",
-        #    "StaticMaternKernel", "MaternKernel",
+           "StaticMatern12Kernel", "Matern12Kernel",
+           "StaticMatern32Kernel", "Matern32Kernel",
+           "StaticMatern52Kernel", "Matern52Kernel",
            "OperatorKernel", "SumKernel", "ProductKernel",
            "WrapperKernel", "NegKernel", "ExpKernel", "LogKernel", "DiagKernel"]
