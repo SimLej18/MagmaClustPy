@@ -44,9 +44,7 @@ def hyperpost_shared_input_distinct_hp(outputs: jnp.ndarray, prior_mean: jnp.nda
 
 	# Compute task covariance and its Cholesky factor
 	task_covs_u = cho_factor(task_covs)
-	task_cov_inv = cho_solve(task_covs_u, eye)
-
-	task_cov_inv = task_cov_inv.sum(axis=0)
+	task_cov_inv = cho_solve(task_covs_u, eye).sum(axis=0)
 
 	if inputs_to_grid is not None:
 		task_cov_inv = jnp.zeros_like(mean_cov_inv).at[jnp.ix_(inputs_to_grid, inputs_to_grid)].set(task_cov_inv)
@@ -56,7 +54,6 @@ def hyperpost_shared_input_distinct_hp(outputs: jnp.ndarray, prior_mean: jnp.nda
 
 	# Compute posterior mean
 	weighted_prior_mean = cho_solve(mean_cov_u, prior_mean)
-	# weighted_tasks = vmap(lambda L, o: cho_solve((L, True), o))(task_covs_L, outputs).sum(axis=0)
 	weighted_tasks = cho_solve(task_covs_u, outputs).sum(axis=0)
 
 	if inputs_to_grid is not None:
@@ -171,7 +168,6 @@ def hyperpost(inputs: jnp.ndarray, outputs: jnp.ndarray, mappings: jnp.ndarray, 
 			                                          inputs_to_grid)
 
 	else:  # No shared input: we have to pad and mapping
-		# task_covs = task_kernel(jnp.broadcast_to(all_inputs, (len(inputs), len(all_inputs))))
 		task_covs = task_kernel(inputs)
 		return hyperpost_distinct_input(outputs, mappings, all_inputs, prior_mean, mean_cov_u, mean_cov_inv,
 		                                task_covs, inputs_to_grid)

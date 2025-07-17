@@ -67,6 +67,9 @@ def cho_solve(factor: jnp.ndarray, B: jnp.ndarray) -> jnp.ndarray:
 
 	:return: The solution X such that A @ X = B.
 	"""
+	# If B is a single matrix, we broadcast it to the shape of the factorisation.
+	if B.ndim == 2 and factor.ndim == 3:
+		B = jnp.broadcast_to(B, factor.shape)
 	return jsc.linalg.cho_solve((factor, False), B)
 
 
