@@ -5,6 +5,9 @@ from jax import numpy as jnp
 
 from MagmaClustPy.linalg import cho_factor, cho_solve, map_to_full_matrix_batch, map_to_full_array_batch
 
+import os
+os.environ['JAX_DISABLE_JIT'] = 'True'
+
 
 @jit
 def hyperpost_shared_input_shared_hp(outputs: jnp.ndarray, prior_mean: jnp.ndarray, mean_cov_u: jnp.ndarray,
@@ -97,7 +100,7 @@ def hyperpost_distinct_input(outputs: jnp.ndarray, mappings: jnp.ndarray, all_in
 	weighted_prior_mean = cho_solve(mean_cov_u, prior_mean)
 	mapped_outputs = jnp.nan_to_num(map_to_full_array_batch(outputs, all_inputs, mappings))
 	padded_task_covs_U = map_to_full_matrix_batch(task_covs_U, all_inputs, mappings)
-	eyed_task_covs_U = jnp.where(jnp.isnan(padded_task_covs_U), jnp.eye(all_inputs.shape[-1]), padded_task_covs_U)
+	eyed_task_covs_U = jnp.where(jnp.isnan(padded_task_covs_U), jnp.eye(all_inputs.shape[0]), padded_task_covs_U)
 	weighted_tasks = cho_solve(eyed_task_covs_U, mapped_outputs).sum(axis=0)
 
 	if inputs_to_grid is not None:
