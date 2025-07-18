@@ -104,7 +104,7 @@ def hyperpost_distinct_input(outputs: jnp.ndarray, mappings: jnp.ndarray, all_in
 	weighted_tasks = cho_solve(eyed_task_covs_U, mapped_outputs).sum(axis=0)
 
 	if inputs_to_grid is not None:
-		weighted_tasks = jnp.zeros_like(prior_mean).at[inputs_to_grid].set(weighted_tasks)
+		weighted_tasks = jnp.zeros_like(prior_mean, dtype=weighted_tasks.dtype).at[inputs_to_grid].set(weighted_tasks) # Really important to specify dtype in jnp.zeros_like; otherwise, it converts all our observed outputs to int (because prior_mean default dtype is int).
 
 	post_mean = cho_solve(post_cov_inv, weighted_prior_mean + weighted_tasks)
 
