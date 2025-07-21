@@ -3,7 +3,7 @@ This module provides linear algebra functions for MagmaClustPy.
 """
 
 import jax.numpy as jnp
-import jax.scipy as jsc
+import jax.scipy as jsp
 from jax import jit, vmap
 from jax.lax import cond, while_loop
 
@@ -35,7 +35,7 @@ def cho_factor(cov: jnp.ndarray, init_jitter: jnp.ndarray = jnp.array(1e-10),
 		factorisation, jitter, eye = carry
 		new_jitter = jitter * 10
 
-		factorisation = jsc.linalg.cho_factor(cov + new_jitter * eye)[0]
+		factorisation = jsp.linalg.cho_factor(cov + new_jitter * eye)[0]
 
 		return factorisation, new_jitter, eye
 
@@ -46,7 +46,7 @@ def cho_factor(cov: jnp.ndarray, init_jitter: jnp.ndarray = jnp.array(1e-10),
 	else:
 		raise ValueError(f"Invalid covariance matrix shape: {cov.shape}. Expected 2D or 3D array.")
 
-	init_factorisation = jsc.linalg.cho_factor(cov + init_jitter * eye)[0]
+	init_factorisation = jsp.linalg.cho_factor(cov + init_jitter * eye)[0]
 
 	# Initialisation
 	carry = (init_factorisation, init_jitter, eye)
@@ -57,20 +57,56 @@ def cho_factor(cov: jnp.ndarray, init_jitter: jnp.ndarray = jnp.array(1e-10),
 
 
 @jit
-def cho_solve(factor: jnp.ndarray, B: jnp.ndarray) -> jnp.ndarray:
+def cho_solve(factor: jnp.ndarray, result: jnp.ndarray) -> jnp.ndarray:
 	"""
-	Wrapper around jax.scipy.linalg.cho_solve to solve the linear system A @ X = B, as we always use the upper version
+	Wrapper around jax.scipy.linalg.cho_solve to solve the linear system factor @ X = result, as we always use the upper version
 	of Cholesky factorisation in the whole codebase.
 
 	:param factor: The Cholesky factorisation of the covariance matrix A (output of cho_factor).
-	:param B: The right-hand side matrix or vector to solve for.
+	:param result: The right-hand side matrix or vector to solve for.
 
-	:return: The solution X such that A @ X = B.
+	:return: The solution X such that factor @ X = result.
+
+	Special notes on broadcasting:
+	- if factor is a matrix (shape M, M) and result is a vector (shape M,), the output will be a vector (shape M,).
+	- if factor is a matrix (shape M, M) and result is a matrix (shape M, N), the output will be a matrix (shape M, N).
+	- if factor is a matrix (shape M, M) and result is a batch of matrices (shape B, M, N), the output will be a batch of matrices (shape B, M, N).
+	- if factor is a batch of matrices (shape B, M, M) and result is a vector (shape M,), the output will be a batch of vectors (shape B, M).
+	- if factor is a batch of matrices (shape B, M, M) and result is a matrix (shape M, N), the output will be a batch of matrices (shape B, M, N).
+	- if factor is a batch of matrices (shape B, M, M) and result is a batch of vectors (shape B, M), the output will be a batch of vectors (shape B, M).
+	- if factor is a batch of matrices (shape B, M, M) and result is a batch of matrices (shape B, M, N), the output will be a batch of matrices (shape B, M, N).
+
+	The broadcasting has one ambiguous case: when factor.ndim==3 and result.ndim==2. Depending on the first dimension, we have two resolutions:
+	- (B, M, M) + (M, M) -> (B, M, M), aka each matrix in the batch is solved against the same matrix
+	- (B, M, M) + (B, M) -> (B, M), aka each matrix in the batch is solved against its corresponding vector
+	If B == M, we have no way of knowing which option to choose. By default, the first option is picked.
+	If you want to avoid that, you can add a dimension at the end of the vectors batch and squeeze the result, e.g: (B, M, M) + (B, M, 1) -> (B, M, 1)
 	"""
-	# If B is a single matrix, we broadcast it to the shape of the factorisation.
-	if B.ndim == 2 and factor.ndim == 3:
-		B = jnp.broadcast_to(B, factor.shape)
-	return jsc.linalg.cho_solve((factor, False), B)
+	# Handle different broadcasting scenarios
+	if factor.ndim == 2:
+		# factor is (M, M)
+		if result.ndim == 2 and result.shape[1] == factor.shape[0] and result.shape[0] != factor.shape[0]:
+			# Case: (M, M) + (B, M) -> (B, M): transpose result to (M, B), solve, then transpose back
+			return jsp.linalg.cho_solve((factor, False), result.T).T
+		else:
+			# Standard cases: (M, M) + (M,) or (M, M) + (M, N)
+			return jsp.linalg.cho_solve((factor, False), result)
+	elif factor.ndim == 3:
+		# factor is (B, M, M)
+		if result.ndim == 1:
+			# (B, M, M) + (M,) -> (B, M): broadcast result to match batch dimension
+			result = jnp.broadcast_to(result, (factor.shape[0], result.shape[0]))
+		elif result.ndim == 2:
+			# Handle ambiguous case: (B, M, M) + (B, M) vs (B, M, M) + (M, N)
+			if result.shape[0] == factor.shape[0] and result.shape[1] == factor.shape[1]:
+				# Case (B, M, M) + (B, M) -> (B, M): already compatible
+				pass
+			elif result.shape[0] == factor.shape[1]:
+				# Case (B, M, M) + (M, N) -> (B, M, N): broadcast to batch dimension
+				result = jnp.broadcast_to(result, (factor.shape[0],) + result.shape)
+	# For (B, M, M) + (B, M, N), no broadcasting needed
+
+	return jsp.linalg.cho_solve((factor, False), result)
 
 
 @jit
@@ -83,7 +119,7 @@ def solve_right_cholesky(A: jnp.ndarray, B: jnp.ndarray, jitter: jnp.ndarray = j
 	# As A and B are symmetric, this simplifies to A @ X.T = B
 	# Then solve for X.T and transpose the result
 	jitter_matrix = jnp.eye(A.shape[0]) * jitter
-	return jsc.linalg.cho_solve(jsc.linalg.cho_factor(A + jitter_matrix), B).T
+	return jsp.linalg.cho_solve(jsp.linalg.cho_factor(A + jitter_matrix), B).T
 
 
 # --- Mapping functions ---
