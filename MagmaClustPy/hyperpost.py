@@ -1,67 +1,35 @@
 from typing import Tuple, Optional
 
-from jax import jit
+from jax import jit, vmap
 from jax import numpy as jnp
 
-from MagmaClustPy.linalg import cho_factor, cho_solve, map_to_full_matrix_batch, map_to_full_array_batch
-
-import os
-os.environ['JAX_DISABLE_JIT'] = 'True'
+from Kernax import AbstractKernel
+from MagmaClustPy.linalg import cho_factor, cho_solve, map_to_full_matrix_batch, map_to_full_array_batch, lexicographic_sort, compute_mapping
 
 
 @jit
-def hyperpost_shared_input_shared_hp(outputs: jnp.ndarray, prior_mean: jnp.ndarray, mean_cov_u: jnp.ndarray,
-                                     mean_cov_inv: jnp.ndarray, task_cov: jnp.ndarray,
-                                     inputs_to_grid: Optional[jnp.ndarray] = None) -> Tuple[jnp.ndarray, jnp.ndarray]:
-	eye = jnp.eye(task_cov.shape[-1])
-	# Compute task covariance and its Cholesky factor
-	task_cov_u = cho_factor(task_cov)
-	task_cov_inv = cho_solve(task_cov_u, eye)
+def hyperpost_shared_input(outputs: jnp.ndarray, prior_mean: jnp.ndarray, mean_cov_u: jnp.ndarray,
+                           mean_prec: jnp.ndarray, task_covs: jnp.ndarray) -> Tuple[jnp.ndarray, jnp.ndarray]:
+	eye = jnp.eye(task_covs.shape[-1])
 
-	if inputs_to_grid is not None:
-		task_cov_inv = jnp.zeros_like(mean_cov_inv).at[jnp.ix_(inputs_to_grid, inputs_to_grid)].set(task_cov_inv)
-
-	# All tasks share same inputs and hyperparameters, so their inverse covariances are the same, and we can compute
-	# one then multiply rather than compute all then sum
-	post_cov_inv = cho_factor(mean_cov_inv + len(outputs) * task_cov_inv)
-	post_cov = cho_solve(post_cov_inv, eye)
-
-	# Compute posterior mean
-	weighted_prior_mean = cho_solve(mean_cov_u, prior_mean)
-	weighted_tasks = cho_solve(task_cov_u, outputs.sum(axis=0))
-
-	if inputs_to_grid is not None:
-		weighted_tasks = jnp.zeros_like(prior_mean).at[inputs_to_grid].set(weighted_tasks)
-
-	post_mean = cho_solve(post_cov_inv, weighted_prior_mean + weighted_tasks)
-
-	return post_mean, post_cov
-
-
-@jit
-def hyperpost_shared_input_distinct_hp(outputs: jnp.ndarray, prior_mean: jnp.ndarray, mean_cov_u: jnp.ndarray,
-                                       mean_cov_inv: jnp.ndarray, task_covs: jnp.ndarray,
-                                       inputs_to_grid: Optional[jnp.ndarray] = None) -> Tuple[jnp.ndarray, jnp.ndarray]:
-	eye = jnp.broadcast_to(jnp.eye(task_covs.shape[-1]), task_covs.shape)
-
-	# Compute task covariance and its Cholesky factor
+	# Compute task covariance, its Cholesky factor and its inverse aka precision
 	task_covs_u = cho_factor(task_covs)
-	task_cov_inv = cho_solve(task_covs_u, eye).sum(axis=0)
+	task_prec = cho_solve(task_covs_u, eye)
 
-	if inputs_to_grid is not None:
-		task_cov_inv = jnp.zeros_like(mean_cov_inv).at[jnp.ix_(inputs_to_grid, inputs_to_grid)].set(task_cov_inv)
-
-	post_cov_inv = cho_factor(mean_cov_inv + task_cov_inv)
-	post_cov = cho_solve(post_cov_inv, eye[0])
+	if task_prec.ndim == 2:
+		# Shared inputs and shared HPs, all covs are the same, so we only have only one
+		post_prec_u = cho_factor(mean_prec + len(outputs) * task_prec)
+	else:
+		# task_prec has a batch dimension, we have distinct HPs
+		post_prec_u = cho_factor(mean_prec + task_prec.sum(axis=0))
+	post_cov = cho_solve(post_prec_u, eye)
 
 	# Compute posterior mean
 	weighted_prior_mean = cho_solve(mean_cov_u, prior_mean)
+
 	weighted_tasks = cho_solve(task_covs_u, outputs).sum(axis=0)
 
-	if inputs_to_grid is not None:
-		weighted_tasks = jnp.zeros_like(prior_mean).at[inputs_to_grid].set(weighted_tasks)
-
-	post_mean = cho_solve(post_cov_inv, weighted_prior_mean + weighted_tasks)
+	post_mean = cho_solve(post_prec_u, weighted_prior_mean + weighted_tasks)
 
 	return post_mean, post_cov
 
@@ -69,14 +37,13 @@ def hyperpost_shared_input_distinct_hp(outputs: jnp.ndarray, prior_mean: jnp.nda
 @jit
 def hyperpost_distinct_input(outputs: jnp.ndarray, mappings: jnp.ndarray, all_inputs: jnp.ndarray,
                              prior_mean: jnp.ndarray, mean_cov_u: jnp.ndarray, mean_cov_inv: jnp.ndarray,
-                             task_covs: jnp.ndarray,
-                             inputs_to_grid: Optional[jnp.ndarray] = None) -> Tuple[jnp.ndarray, jnp.ndarray]:
+                             task_covs: jnp.ndarray) -> Tuple[jnp.ndarray, jnp.ndarray]:
 	"""
 	computes the hyperpost on distinct inputs
 
 	task_covs: (M, N, N), batch of unaligned covariances
 	"""
-	small_eye = jnp.broadcast_to(jnp.eye(task_covs.shape[-1]), task_covs.shape)
+	small_eye = jnp.eye(task_covs.shape[-1])
 
 	# task_covs is padded with NaNs. Replace them by their corresponding identity rows/cols
 	eyed_task_covs = jnp.where(jnp.isnan(task_covs), small_eye, task_covs)
@@ -86,9 +53,6 @@ def hyperpost_distinct_input(outputs: jnp.ndarray, mappings: jnp.ndarray, all_in
 	task_covs_inv -= jnp.where(jnp.isnan(task_covs), small_eye, 0)  # Correction on the diagonal
 	task_covs_inv = map_to_full_matrix_batch(task_covs_inv, all_inputs, mappings)
 	task_cov_inv = jnp.nan_to_num(task_covs_inv).sum(axis=0)
-
-	if inputs_to_grid is not None:
-		task_cov_inv = jnp.zeros_like(mean_cov_inv).at[jnp.ix_(inputs_to_grid, inputs_to_grid)].set(task_cov_inv)
 
 	post_cov_inv = cho_factor(mean_cov_inv + task_cov_inv)
 	post_cov = cho_solve(post_cov_inv, jnp.eye(mean_cov_u.shape[-1]))
@@ -100,18 +64,16 @@ def hyperpost_distinct_input(outputs: jnp.ndarray, mappings: jnp.ndarray, all_in
 	eyed_task_covs_U = jnp.where(jnp.isnan(padded_task_covs_U), jnp.eye(all_inputs.shape[0]), padded_task_covs_U)
 	weighted_tasks = cho_solve(eyed_task_covs_U, mapped_outputs).sum(axis=0)
 
-	if inputs_to_grid is not None:
-		weighted_tasks = jnp.zeros_like(prior_mean, dtype=weighted_tasks.dtype).at[inputs_to_grid].set(weighted_tasks) # Really important to specify dtype in jnp.zeros_like; otherwise, it converts all our observed outputs to int (because prior_mean default dtype is int).
-
 	post_mean = cho_solve(post_cov_inv, weighted_prior_mean + weighted_tasks)
 
 	return post_mean, post_cov
 
 
 # General function
+@jit
 def hyperpost(inputs: jnp.ndarray, outputs: jnp.ndarray, mappings: jnp.ndarray, all_inputs: jnp.ndarray,
-              prior_mean: jnp.ndarray, mean_kernel, task_kernel, grid: Optional[jnp.ndarray] = None) -> Tuple[
-	jnp.ndarray, jnp.ndarray]:
+              prior_mean: jnp.ndarray, mean_kernel: AbstractKernel, task_kernel: AbstractKernel, grid: Optional[jnp.ndarray] = None) \
+		-> Tuple[jnp.ndarray, jnp.ndarray]:
 	"""
 	Computes the posterior mean and covariance of a Magma GP given the inputs, outputs, mappings, prior mean and kernels.
 
@@ -124,7 +86,7 @@ def hyperpost(inputs: jnp.ndarray, outputs: jnp.ndarray, mappings: jnp.ndarray, 
 	:param mean_kernel: Kernel to be used to compute the mean covariance.
 	:param task_kernel: Kernel to be used to compute the task covariance.
 	:param grid: the grid on which the GP is defined. If not provided, the GP is defined on all distinct inputs.
-	Shape (G, I)
+	Shape (G, I), when provided it is merged with all_inputs to keep information in the model.
 
 	:return: a 2-tuple of the posterior mean and covariance
 	"""
@@ -133,42 +95,38 @@ def hyperpost(inputs: jnp.ndarray, outputs: jnp.ndarray, mappings: jnp.ndarray, 
 	# The user should provide a specific Kernel to compute a cross-covariance with the right shape too
 	outputs = outputs.reshape(outputs.shape[0], -1)
 
-	shared_hp = not task_kernel.has_distinct_hyperparameters(inputs.shape[0])
-
 	# Merge inputs and grid to create all_inputs
 	shared_input = len(inputs[0]) == len(all_inputs)
+	shared_hp = not task_kernel.has_distinct_hyperparameters(inputs.shape[0])
 
 	if grid is None:
 		grid = all_inputs
-		inputs_to_grid = None
 	else:
-		grid = jnp.sort(jnp.unique(jnp.concatenate([all_inputs, grid]), axis=0), axis=0)	# Add axis=0 to keep a 2D array because jnp.unique() flatten all_inputs and grid by default.
-		inputs_to_grid = jnp.searchsorted(grid.squeeze(), all_inputs.squeeze()) 	# Add .squeeze() to get grid and all_inputs as 1D arrays (required for jnp.searchsorted).
+		grid = lexicographic_sort(jnp.concatenate([all_inputs, grid]))
+		# FIXME: concatenating all_inputs and grid might introduce duplicates,
+		#  but we can't use jnp.unique in a jitted function without knowing the new dimension in advance.
+		#  It's unclear if those duplicate points might introduce numerical problems later.
+		mappings = vmap(compute_mapping, in_axes=(None, 0))(grid, inputs)
 		shared_input = False  # We need to pad the cov matrices to compute on the full grid
 
 	if prior_mean.ndim == 0:
 		prior_mean = jnp.broadcast_to(prior_mean, (len(grid),))
 
-	# Numerical stability terms
-	eye = jnp.eye(grid.shape[0])
-
 	# Compute mean covariance and its Cholesky factor
 	mean_cov = mean_kernel(grid, grid)
 	mean_cov_u = cho_factor(mean_cov)
-	mean_cov_inv = cho_solve(mean_cov_u, eye)
+	mean_cov_inv = cho_solve(mean_cov_u, jnp.eye(grid.shape[0]))
 
 	if shared_input:
 		if shared_hp:
-			task_cov = task_kernel(grid)  # Shape: (N, N)
-			return hyperpost_shared_input_shared_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_cov,
-			                                        inputs_to_grid)
+			task_covs = task_kernel(grid)  # Shape: (Max_Ni, Max_Ni)
+		else:
+			task_covs = task_kernel(inputs)  # Shape: (T, Max_Ni, Max_Ni)
 
-		else:  # distinct HPs, we have to compute every task covariance but no padding is required
-			task_covs = task_kernel(inputs)  # Shape: (M, N, N)
-			return hyperpost_shared_input_distinct_hp(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_covs,
-			                                          inputs_to_grid)
+		return hyperpost_shared_input(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_covs)
 
 	else:  # No shared input: we have to pad and mapping
-		task_covs = task_kernel(inputs)
-		return hyperpost_distinct_input(outputs, mappings, all_inputs, prior_mean, mean_cov_u, mean_cov_inv,
-		                                task_covs, inputs_to_grid)
+		task_covs = task_kernel(inputs)  # Shape: (T, Max_Ni, Max_Ni)
+
+		return hyperpost_distinct_input(outputs, mappings, grid, prior_mean, mean_cov_u, mean_cov_inv,
+		                                task_covs)

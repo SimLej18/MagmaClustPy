@@ -233,7 +233,7 @@ searchsorted_2D_vectorized = jit(vmap(searchsorted_2D, in_axes=(0, None)))
 
 
 @jit
-def lexicographic_sort(arr: jnp.ndarray):
+def lexicographic_sort(arr: jnp.ndarray) -> jnp.ndarray:
 	"""
 	sorts a 2D array lexicographically
 	:param arr: 2D array to be sorted
