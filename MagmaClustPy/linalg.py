@@ -230,3 +230,29 @@ def searchsorted_2D(vector: jnp.ndarray, matrix: jnp.ndarray) -> jnp.ndarray:
 
 
 searchsorted_2D_vectorized = jit(vmap(searchsorted_2D, in_axes=(0, None)))
+
+
+@jit
+def lexicographic_sort(arr: jnp.ndarray):
+	"""
+	sorts a 2D array lexicographically
+	:param arr: 2D array to be sorted
+	:return: sorted version along the first dimension
+	"""
+	return arr[jnp.lexsort(arr.T[::-1])]
+
+
+@jit
+def compute_mapping(grid: jnp.array, element: jnp.array) -> jnp.array:
+	"""
+	Returns the indices of each vector/element in the grid. The grid must be sorted lexicographically.
+
+	:param grid: a sorted grid of shape (N,) or (N, I). If it is 2D, it must be sorted lexicographically.
+	:param elements: element to search for in the grid, either scalar or of shape (I,)
+	:return: indices in grid where the element can be found, as a scalar.
+	"""
+	if grid.shape[-1] == 1:
+		# We only have 1 input dimension, and we can use the fast jnp.searchsorted function
+		return jnp.searchsorted(grid.squeeze(axis=-1), element.squeeze(axis=-1))
+	# Multiple input dimensions requires our custom lexicographic search
+	return searchsorted_2D_vectorized(element, grid)

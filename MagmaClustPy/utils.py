@@ -8,7 +8,7 @@ import pandas as pd
 from jax import jit
 from jax import vmap
 
-from MagmaClustPy.linalg import searchsorted_2D_vectorized
+from MagmaClustPy.linalg import compute_mapping
 
 
 def generate_dummy_db(M: int, INPUTS_ID: List[str], MIN_N: int, MAX_N: int, OUTPUTS_ID: List[str],
@@ -125,12 +125,7 @@ def extract_task_data(_id, task_ids, input_values, output_values, all_inputs, ma
 	"""
 	inputs_i = jnp.where(task_ids == _id, input_values, jnp.nan)
 	outputs_i = jnp.where(task_ids == _id, output_values, jnp.nan)
-	if all_inputs.shape[-1] == 1:
-		# We only have 1 input dimension, and we can use the fast jnp.searchsorted function
-		mappings_i = jnp.searchsorted(all_inputs.squeeze(axis=-1), inputs_i.squeeze(axis=-1))
-	else:
-		# Multiple input dimensions requires our custom lexicographic search
-		mappings_i = searchsorted_2D_vectorized(inputs_i, all_inputs)
+	mappings_i = compute_mapping(all_inputs, input_values)
 
 	# Compute index among the whole dataset
 	idx_i = jnp.where(jnp.isnan(inputs_i[:, 0]), max_n_i + 1, jnp.cumsum(~jnp.isnan(inputs_i[:, 0])) - 1)
