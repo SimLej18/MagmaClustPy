@@ -107,28 +107,30 @@ def pivot_db(df: pd.DataFrame) -> pd.DataFrame:
 
 
 @partial(jit, static_argnames=["max_n_i"])
-def extract_task_data(_id: int, task_ids: jnp.ndarray, input_values: jnp.ndarray, output_values: jnp.ndarray,
-                      all_inputs: jnp.ndarray, max_n_i: int) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
+def extract_task_data(_id, task_ids, input_values, output_values, all_inputs, max_n_i):
 	"""
-	Extract data for a given task ID from the values array and return a row of padded inputs, padded outputs and
-	index_mappings.
+	Extract data for a given task ID from the values array and return a row of padded inputs, padded outputs and index_mappings.
 
-	:param _id: The task ID to extract data for
-	:param task_ids: The array of the task id of each observation (shape: (N, 1))
-	:param input_values: The input values for all tasks  (shape: (T, N, I))
-	:param output_values: The output values for all tasks (shape: (T, N, O))
-	:param all_inputs: The array of all distinct inputs (shape: (P, I))
-	:param max_n_i: The maximum number of inputs per task (scalar)
+	:param _id: the task ID to extract data for
+	:param task_ids: the array of the task id of each observation (shape: (N, 1))
+	:param input_values: the input values for all tasks  (shape: (T, N, I))
+	:param output_values: the output values for all tasks (shape: (T, N, O))
+	:param all_inputs: the array of all distinct inputs (shape: (P, I))
+	:param max_n_i: the maximum number of inputs per task (scalar)
 
 	:return: a tuple of (padded_input, padded_output, index_mappings)
 	   - padded_input: a matrix of shape (MAX_N_I, I) with inputs for the task, padded with NaNs
 	   - padded_output: a matrix of shape (MAX_N_I, O) with corresponding outputs for each input, padded with NaNs
-	   - index_mappings: a matrix of shape (MAX_N_I,) with indices of the inputs in the all_inputs array. Missing inputs
-	   for the task are represented as NaNs.
+	   - index_mappings: a matrix of shape (MAX_N_I,) with indices of the inputs in the all_inputs array. Missing inputs for the task are represented as NaNs.
 	"""
 	inputs_i = jnp.where(task_ids == _id, input_values, jnp.nan)
 	outputs_i = jnp.where(task_ids == _id, output_values, jnp.nan)
-	mappings_i = searchsorted_2D_vectorized(inputs_i, all_inputs)
+	if all_inputs.shape[-1] == 1:
+		# We only have 1 input dimension, and we can use the fast jnp.searchsorted function
+		mappings_i = jnp.searchsorted(all_inputs.squeeze(axis=-1), inputs_i.squeeze(axis=-1))
+	else:
+		# Multiple input dimensions requires our custom lexicographic search
+		mappings_i = searchsorted_2D_vectorized(inputs_i, all_inputs)
 
 	# Compute index among the whole dataset
 	idx_i = jnp.where(jnp.isnan(inputs_i[:, 0]), max_n_i + 1, jnp.cumsum(~jnp.isnan(inputs_i[:, 0])) - 1)
