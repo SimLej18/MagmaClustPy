@@ -11,7 +11,7 @@ from jax.lax import cond, while_loop
 # --- Linear algebra functions ---
 
 @jit
-def cho_factor(cov: jnp.ndarray, init_jitter: jnp.ndarray = jnp.array(1e-10),
+def cho_factor(cov: jnp.ndarray, init_jitter: jnp.ndarray = jnp.array(1e-8),
                max_jitter: jnp.ndarray = jnp.array(1.0)) -> jnp.ndarray:
 	"""
 	Wrapper around jax.scipy.linalg.cho_factor to compute the Cholesky factorisation of a covariance matrix.
@@ -195,8 +195,8 @@ def searchsorted_2D(vector: jnp.ndarray, matrix: jnp.ndarray) -> jnp.ndarray:
 
 		return cond(
 			jnp.any(nonzero_mask),
-			lambda: jnp.array(jnp.sign(diff[first_nonzero_idx]), dtype=jnp.int32),
-			lambda: jnp.array(0, dtype=jnp.int32)
+			lambda: jnp.array(jnp.sign(diff[first_nonzero_idx])).astype(int),
+			lambda: jnp.array(0).astype(int)
 		)
 
 	@jit

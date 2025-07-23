@@ -153,11 +153,11 @@ def preprocess_db(db: pd.DataFrame) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarr
 	db_flat = pivot_db(db)
 
 	# Get task IDs
-	task_ids = jnp.array(db_flat["Task_ID"].values, dtype=jnp.int32)[:, None]  # Convert to column vector
+	task_ids = jnp.array(db_flat["Task_ID"].values.astype(int))[:, None]  # Convert to column vector
 
 	# Get inputs and outputs
-	inputs = jnp.array(db_flat.filter(like="Input_").values, dtype=jnp.float32)
-	outputs = jnp.array(db_flat.filter(like="Output_").values, dtype=jnp.float32)
+	inputs = jnp.array(db_flat.filter(like="Input_").values).astype(float)
+	outputs = jnp.array(db_flat.filter(like="Output_").values).astype(float)
 
 	# Get all distinct inputs
 	all_inputs = jnp.unique(
@@ -168,6 +168,8 @@ def preprocess_db(db: pd.DataFrame) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarr
 	MAX_N = jnp.max(jnp.sum(task_ids == task_ids[0], axis=0)).item()  # Maximum number of inputs per task
 
 	# Recover padded inputs, padded outputs and index mappings
-	return vmap(extract_task_data, in_axes=(0, None, None, None, None, None))(jnp.unique(task_ids), task_ids, inputs,
-	                                                                          outputs, all_inputs, MAX_N) + (
-		all_inputs,)
+	padded_inputs, padded_outputs, index_mappings = (vmap(extract_task_data, in_axes=(0, None, None, None, None, None))
+	                                                 (jnp.unique(task_ids), task_ids, inputs,  outputs, all_inputs, MAX_N))
+
+	# return jnp.round(padded_inputs, 6), jnp.round(padded_outputs, 6), jnp.round(index_mappings, 6), jnp.round(all_inputs, 6)
+	return padded_inputs, padded_outputs, index_mappings, all_inputs

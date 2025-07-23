@@ -1,10 +1,10 @@
-from typing import Tuple, Optional
+from typing import Tuple
 
-from jax import jit, vmap
+from jax import jit
 from jax import numpy as jnp
 
 from Kernax import AbstractKernel
-from MagmaClustPy.linalg import cho_factor, cho_solve, map_to_full_matrix_batch, map_to_full_array_batch, lexicographic_sort, compute_mapping
+from MagmaClustPy.linalg import cho_factor, cho_solve, map_to_full_matrix_batch, map_to_full_array_batch
 
 
 @jit
@@ -70,9 +70,10 @@ def hyperpost_distinct_input(outputs: jnp.ndarray, mappings: jnp.ndarray, all_in
 
 
 # General function
-@jit
+#@jit
+#FIXME: with `and not jnp.any(jnp.isnan(inputs))`, we have a concretization error when trying to jit. This should be avoidable
 def hyperpost(inputs: jnp.ndarray, outputs: jnp.ndarray, mappings: jnp.ndarray, all_inputs: jnp.ndarray,
-              prior_mean: jnp.ndarray, mean_kernel: AbstractKernel, task_kernel: AbstractKernel, grid: Optional[jnp.ndarray] = None) \
+              prior_mean: jnp.ndarray, mean_kernel: AbstractKernel, task_kernel: AbstractKernel) \
 		-> Tuple[jnp.ndarray, jnp.ndarray]:
 	"""
 	Computes the posterior mean and covariance of a Magma GP given the inputs, outputs, mappings, prior mean and kernels.
@@ -85,7 +86,6 @@ def hyperpost(inputs: jnp.ndarray, outputs: jnp.ndarray, mappings: jnp.ndarray, 
 	across the domain.
 	:param mean_kernel: Kernel to be used to compute the mean covariance.
 	:param task_kernel: Kernel to be used to compute the task covariance.
-	:param grid: the grid on which the GP is defined. If not provided, the GP is defined on all distinct inputs.
 	Shape (G, I), when provided it is merged with all_inputs to keep information in the model.
 
 	:return: a 2-tuple of the posterior mean and covariance
@@ -95,31 +95,20 @@ def hyperpost(inputs: jnp.ndarray, outputs: jnp.ndarray, mappings: jnp.ndarray, 
 	# The user should provide a specific Kernel to compute a cross-covariance with the right shape too
 	outputs = outputs.reshape(outputs.shape[0], -1)
 
-	# Merge inputs and grid to create all_inputs
-	shared_input = len(inputs[0]) == len(all_inputs)
+	shared_input = len(inputs[0]) == len(all_inputs) and not jnp.any(jnp.isnan(inputs))
 	shared_hp = not task_kernel.has_distinct_hyperparameters(inputs.shape[0])
 
-	if grid is None:
-		grid = all_inputs
-	else:
-		grid = lexicographic_sort(jnp.concatenate([all_inputs, grid]))
-		# FIXME: concatenating all_inputs and grid might introduce duplicates,
-		#  but we can't use jnp.unique in a jitted function without knowing the new dimension in advance.
-		#  It's unclear if those duplicate points might introduce numerical problems later.
-		mappings = vmap(compute_mapping, in_axes=(None, 0))(grid, inputs)
-		shared_input = False  # We need to pad the cov matrices to compute on the full grid
-
 	if prior_mean.ndim == 0:
-		prior_mean = jnp.broadcast_to(prior_mean, (len(grid),))
+		prior_mean = jnp.broadcast_to(prior_mean, (len(all_inputs),))
 
 	# Compute mean covariance and its Cholesky factor
-	mean_cov = mean_kernel(grid, grid)
+	mean_cov = mean_kernel(all_inputs, all_inputs)
 	mean_cov_u = cho_factor(mean_cov)
-	mean_cov_inv = cho_solve(mean_cov_u, jnp.eye(grid.shape[0]))
+	mean_cov_inv = cho_solve(mean_cov_u, jnp.eye(all_inputs.shape[0]))
 
 	if shared_input:
 		if shared_hp:
-			task_covs = task_kernel(grid)  # Shape: (Max_Ni, Max_Ni)
+			task_covs = task_kernel(all_inputs)  # Shape: (Max_Ni, Max_Ni)
 		else:
 			task_covs = task_kernel(inputs)  # Shape: (T, Max_Ni, Max_Ni)
 
@@ -128,5 +117,5 @@ def hyperpost(inputs: jnp.ndarray, outputs: jnp.ndarray, mappings: jnp.ndarray, 
 	else:  # No shared input: we have to pad and mapping
 		task_covs = task_kernel(inputs)  # Shape: (T, Max_Ni, Max_Ni)
 
-		return hyperpost_distinct_input(outputs, mappings, grid, prior_mean, mean_cov_u, mean_cov_inv,
+		return hyperpost_distinct_input(outputs, mappings, all_inputs, prior_mean, mean_cov_u, mean_cov_inv,
 		                                task_covs)
