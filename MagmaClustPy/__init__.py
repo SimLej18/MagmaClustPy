@@ -3,3 +3,5 @@ from . import hyperpost
 from . import likelihoods
 from . import linalg
 from . import utils
+from . import plot
+from . import prediction

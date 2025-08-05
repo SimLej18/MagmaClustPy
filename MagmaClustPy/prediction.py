@@ -1,27 +1,54 @@
-# Standard library imports
-import os
-os.environ['JAX_ENABLE_X64'] = "True"
+from functools import partial
 
-# Local imports
-from MagmaClustPy.hyperpost import hyperpost
-from MagmaClustPy.linalg import cho_factor, cho_solve, map_to_full_matrix_batch, map_to_full_array_batch
-
-# JAX imports
-import jax
 import jax.numpy as jnp
+from jax import jit, vmap
 
-# Other imports
-import pandas as pd
-from typing import Tuple, Optional
+from MagmaClustPy.linalg import cho_solve, cho_factor
+from jax.lax.linalg import triangular_solve
 
 
-def predict(dataset_pred: pd.DataFrame, mean_kern, task_kern, padded_inputs_pred: jnp.ndarray, padded_outputs_pred: jnp.ndarray,
-            indexed_mappings_pred: jnp.ndarray, all_inputs_pred: jnp.ndarray, grid: Optional[jnp.ndarray] = None) -> Tuple[jnp.ndarray, jnp.ndarray]:
+@jit
+def predict_single_task(gamma_on_grid, post_mean_grid, padded_output_pred, mappings_pred_on_grid):
+	post_mean_at_pred = jnp.where(~jnp.isnan(padded_output_pred), post_mean_grid[mappings_pred_on_grid], 0.)
 
-    # TO DO : Implement the documentation for predict(), and the core of the function. To do so, all you need
-    #         is in the prediction.ipynb file, in the section "Custom implementation(s)".
-    #         Some arguments may be missing, so feel free to add them if needed.
-    #         For now, the prediction code in prediction.ipynb file do not perform multiple predictions in parallel.
-    #         Feel free to add a beautiful vmap to perform it!
-    
-    return None, None
+	gamma_at_pred = gamma_on_grid[jnp.ix_(mappings_pred_on_grid, mappings_pred_on_grid)]
+	gamma_crossed = gamma_on_grid[mappings_pred_on_grid, :]
+
+	padding_mask = ~jnp.isnan(padded_output_pred)[:, None] & ~jnp.isnan(padded_output_pred)[None, :]
+	padded_gamma_at_pred = jnp.where(padding_mask, gamma_at_pred, jnp.eye(len(gamma_at_pred)))
+	padded_gamma_crossed = jnp.where(~jnp.isnan(padded_output_pred)[:, None], gamma_crossed, 0.)
+
+	gamma_at_pred_U = cho_factor(padded_gamma_at_pred)
+	z = triangular_solve(gamma_at_pred_U, padded_gamma_crossed.T).T
+	y = triangular_solve(gamma_at_pred_U, jnp.nan_to_num(padded_output_pred) - post_mean_at_pred)
+
+	pred_mean = post_mean_grid + (z.T @ y)
+	pred_cov = gamma_on_grid - (z.T @ z)
+
+	return pred_mean, pred_cov
+
+
+@partial(jit, static_argnames=["train_batch_dim"])
+def predict(post_mean_grid, post_cov_grid, padded_outputs_pred, mappings_pred_on_grid, grid, task_kernel_train,
+            train_batch_dim, task_kernel_pred=None):
+	# Compute the prediction covariance on full grid
+	if task_kernel_pred is None:
+		if task_kernel_train.has_distinct_hyperparameters(train_batch_dim):
+			raise ValueError(
+				'Task kernel for pred was not provided, so Magma tries to use the task kernel from training, but it has '
+				'distinct hyperparameters. Either provide a task kernel for prediction or use a training task kernel '
+				'with shared hyperparameters.')
+		covs_pred_on_grid = task_kernel_train(grid)
+	else:
+		# We have to train the task kernel for prediction
+		# TODO
+		raise NotImplementedError("Prediction with re-trained task kernel not supported yet")
+
+	gamma_on_grid = post_cov_grid + covs_pred_on_grid
+
+	# In multi-output, we want to flatten the outputs.
+	# The user should provide a specific Kernel to compute a cross-covariance with the right shape too
+	padded_outputs_pred = padded_outputs_pred.reshape(padded_outputs_pred.shape[0], -1)
+
+	return vmap(predict_single_task, in_axes=(None, None, 0, 0))(gamma_on_grid, post_mean_grid, padded_outputs_pred,
+	                                                             mappings_pred_on_grid)
