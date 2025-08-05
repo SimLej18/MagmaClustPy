@@ -19,6 +19,7 @@ import jax
 jax.config.update("jax_disable_jit", not USE_JIT)
 jax.config.update("jax_debug_nans", DEBUG_NANS)
 import jax.numpy as jnp
+from jax import vmap
 
 # Other imports
 import pandas as pd
@@ -31,10 +32,12 @@ from Kernax import SEMagmaKernel, DiagKernel, ExpKernel
 from MagmaClustPy.hyperpost import hyperpost
 from MagmaClustPy.hp_optimisation import optimise_hyperparameters
 from MagmaClustPy.utils import preprocess_db
+from MagmaClustPy.linalg import lexicographic_sort, compute_mapping
+from MagmaClustPy.prediction import predict
 
 
 def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int = 25, converg_threshold: float = 1e-3,
-              jitter: jnp.ndarray = jnp.array(1e-4)) -> None:
+              grid_size:int = 100, grid_margin:float = 5., jitter: jnp.ndarray = jnp.array(1e-4)) -> None:
 	"""
 	Run the training pipeline with the specified parameters.
 
@@ -43,6 +46,8 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 	:param shared_hp: Whether to use shared hyperparameters across tasks.
 	:param max_iter: Maximum number of iterations for the training loop.
 	:param converg_threshold: Convergence threshold for the training loop.
+	:param grid_size: Size of the grid for the dataset.
+	:param grid_margin: Margin for the grid around the dataset.
 	:param jitter: jitter term for numerical stability in the covariance matrices.
 	"""
 	# Check if cuda is available
@@ -52,7 +57,7 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 	start = time.time()
 
 	## Data import
-	dataset_file = os.path.join("../datasets",
+	dataset_file = os.path.join("datasets",
 	                            f"{dataset}_{'shared_input' if shared_input else 'distinct_input'}_{'shared_hp' if shared_hp else 'distinct_hp'}.csv")
 	try:
 		db = pd.read_csv(dataset_file)
@@ -72,6 +77,10 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 	## Data preprocessing
 	# We need to convert the dataframe into jax arrays
 	padded_inputs_train, padded_outputs_train, mappings_train, all_inputs_train = preprocess_db(db_train)
+	padded_inputs_pred, padded_outputs_pred, mappings_pred, all_inputs_pred = preprocess_db(db_test)
+
+	loading_end = time.time()
+	logging.info(f"Dataset loading and preprocessing done in {loading_end - start:.2f}s")
 
 	## Training
 	# Priors
@@ -128,12 +137,39 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 		prev_mean_llh = mean_llh
 		prev_task_llh = task_llh
 
+	training_end = time.time()
+	logging.info(f"Training completed in {training_end - loading_end:.2f}s")
+
 	## Prediction
-	# TODO
+	# Define the grid for prediction
+	grid = jnp.linspace(jnp.min(all_inputs_train - grid_margin, axis=0),
+	                    jnp.max(all_inputs_train + grid_margin, axis=0), grid_size)
+
+	# Merge grid and all_inputs and compute new mappings
+	full_grid = lexicographic_sort(jnp.unique(jnp.concatenate([all_inputs_train, all_inputs_pred, grid]), axis=0))
+	# Compute new mappings
+	mappings_train_on_grid = vmap(compute_mapping, in_axes=(None, 0))(full_grid, padded_inputs_train)
+	mappings_pred_on_grid = vmap(compute_mapping, in_axes=(None, 0))(full_grid, padded_inputs_pred)
+
+	# Compute the hyper-posterior on the grid
+	post_mean_grid, post_cov_grid = hyperpost(inputs=padded_inputs_train,
+	                                          outputs=padded_outputs_train,
+	                                          mappings=mappings_train_on_grid,
+	                                          all_inputs=full_grid,
+	                                          prior_mean=jnp.array(0.),
+	                                          mean_kernel=mean_kernel,
+	                                          task_kernel=task_kernel)
+
+	# Compute predictions
+	pred_mean, pred_cov = predict(post_mean_grid, post_cov_grid, padded_outputs_pred, mappings_pred_on_grid, full_grid,
+	                              task_kernel, len(padded_inputs_train))
+
+	prediction_end = time.time()
+	logging.info(f"Prediction completed in {prediction_end - training_end:.2f}s")
 
 	## End timer
-	end = time.time()
-	logging.info(f"Magma finished in {end - start}s")
+	full_pipeline_end = time.time()
+	logging.info(f"Magma finished in {full_pipeline_end - start}s total")
 
 
 if __name__ == "__main__":
@@ -142,24 +178,21 @@ if __name__ == "__main__":
 	parser.add_argument('--dataset', type=str, default='small', help='Dataset size: small, medium, large, or huge')
 	parser.add_argument('--shared_input', type=str, default='true', help='Use shared input: true or false')
 	parser.add_argument('--shared_hp', type=str, default='true', help='Use shared hyperparameters: true or false')
+	parser.add_argument('--max_iter', type=int, default=25, help='Maximum number of iterations for training')
+	parser.add_argument('--converg_threshold', type=float, default=1e-3, help='Convergence threshold for training')
+	parser.add_argument('--grid_size', type=int, default=100, help='Size of the grid for the dataset')
+	parser.add_argument('--grid_margin', type=float, default=5., help='Margin for the grid around the dataset')
+	parser.add_argument('--jitter', type=float, default=1e-4, help='Jitter term for numerical stability in covariance matrices')
 
 	args = parser.parse_args()
 
 	dataset = args.dataset
 	shared_input = args.shared_input.lower() == 'true'
 	shared_hp = args.shared_hp.lower() == 'true'
+	max_iter = args.max_iter
+	converg_threshold = args.converg_threshold
+	grid_size = args.grid_size
+	grid_margin = args.grid_margin
+	jitter = jnp.array(args.jitter)
 
-	grids = {
-		"small": jnp.arange(-10, 10, 0.5),
-		"medium": jnp.arange(-100, 100, 0.5),
-		"large": jnp.arange(-500, 500, 0.5),
-		"custom": jnp.arange(-20, 20, 0.5)
-	}
-	grid = grids[dataset] if dataset in grids else grids["custom"]
-
-	# Default hyper-parameters
-	MAX_ITER = 25
-	CONVERG_THRESHOLD = 1e-3
-	jitter = jnp.array(1e-4)
-
-	run_train(dataset, shared_input, shared_hp, max_iter=MAX_ITER, converg_threshold=CONVERG_THRESHOLD, jitter=jitter)
+	run_train(dataset, shared_input, shared_hp, max_iter, converg_threshold, grid_size, grid_margin, jitter)
