@@ -25,6 +25,7 @@ def plot_prediction(grid, post_mean, padded_inputs_train, padded_outputs_train, 
 
 	# Plot either samples or confidence interval
 	if use_samples:
+		# FIXME: the samples are "wobbly". Maybe this is linked to the jitter?
 		samples = jr.multivariate_normal(rand_key, pred_mean, pred_cov + (jitter * jnp.eye(len(pred_cov))), shape=(num_samples,))
 
 		# Plot the samples

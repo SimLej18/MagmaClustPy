@@ -1,54 +1,32 @@
-from typing import NamedTuple, Tuple, Any
+from typing import Tuple, Callable, Any
+from functools import partial
 
-import chex
 import jax
+from jax import jit
 import jax.numpy as jnp
 import optax
 import optax.tree_utils as otu
 
+from Kernax import AbstractKernel
 from MagmaClustPy.likelihoods import magma_neg_likelihood
 
 
-# Taken from optax doc (https://optax.readthedocs.io/en/latest/_collections/examples/lbfgs.html#l-bfgs-solver)
-class InfoState(NamedTuple):
-	iter_num: chex.Numeric
-
-
-def print_info() -> optax.GradientTransformationExtraArgs:
-	"""
-	:return: Basic optax transformation that prints the iteration number, value, and gradient norm at each step.
-	"""
-
-	def init_fn(params):
-		del params
-		return InfoState(iter_num=0)
-
-	def update_fn(updates, state, params, *, value, grad, **extra_args):
-		del params, extra_args
-
-		jax.debug.print(
-			'Iteration: {i}, Value: {v}, Gradient norm: {e}',
-			i=state.iter_num,
-			v=value,
-			e=otu.tree_norm(grad),
-		)
-		return updates, InfoState(iter_num=state.iter_num + 1)
-
-	return optax.GradientTransformationExtraArgs(init_fn, update_fn)
-
-
 # Adapted from optax doc (https://optax.readthedocs.io/en/latest/_collections/examples/lbfgs.html#l-bfgs-solver)
-def run_opt(init_params: Any, fun: Any, opt: optax.GradientTransformation, max_iter: int, tol: float) -> Tuple[
-	Any, Any, jnp.ndarray]:
-	value_and_grad_fun = optax.value_and_grad_from_state(fun)
+@partial(jit, static_argnames=('likelihood', 'opt', 'max_iter', 'tol'))
+def optimise_kernel(init_kernel: AbstractKernel, likelihood: Callable,
+                    opt: optax.GradientTransformationExtraArgs, max_iter: int, tol: float) -> Tuple[AbstractKernel, Any, jnp.ndarray]:
+	# L-BFGS with linesearch requires a custom value_and_grad function.
+	likelihood_value_and_grad = optax.value_and_grad_from_state(likelihood)
 
+	@jit
 	def step(carry):
-		params, state, prev_llh = carry
-		value, grad = value_and_grad_fun(params, state=state)
-		updates, state = opt.update(grad, state, params, value=value, grad=grad, value_fn=fun)
-		params = optax.apply_updates(params, updates)
-		return params, state, value
+		kernel, state, prev_llh = carry
+		value, grad = likelihood_value_and_grad(kernel, state=state)
+		updates, state = opt.update(grad, state, kernel, value=value, grad=grad, value_fn=likelihood)
+		kernel = optax.apply_updates(kernel, updates)
+		return kernel, state, value
 
+	@jit
 	def continuing_criterion(carry):
 		# tol is not computed on the gradients but on the difference between current and previous likelihoods, to
 		# prevent overfitting on ill-defined likelihood functions where variance can blow up.
@@ -58,62 +36,68 @@ def run_opt(init_params: Any, fun: Any, opt: optax.GradientTransformation, max_i
 		diff = jnp.abs(val - prev_llh)
 		return (iter_num == 0) | ((iter_num < max_iter) & (diff >= tol))
 
-	init_carry = (init_params, opt.init(init_params),
-	              jnp.array(jnp.inf))  # kernel params, initial state, first iter, previous likelihood
-	final_params, final_state, final_llh = jax.lax.while_loop(
+	# kernel params, initial state, first iter, previous likelihood
+	init_carry = (init_kernel, opt.init(init_kernel), jnp.array(jnp.inf))
+	final_kernel, final_state, final_llh = jax.lax.while_loop(
 		continuing_criterion, step, init_carry
 	)
-	return final_params, final_state, final_llh
+	return final_kernel, final_state, final_llh
 
 
-def optimise_hyperparameters(mean_kernel: Any, task_kernel: Any, inputs: jnp.ndarray, outputs: jnp.ndarray,
-                             mappings: jnp.ndarray, all_inputs: jnp.ndarray, prior_mean: jnp.ndarray,
-                             post_mean: jnp.ndarray,
-                             post_cov: jnp.ndarray, jitter: jnp.ndarray = jnp.array(1e-10), max_iter: int = 100,
-                             tol: float = 1e-3, verbose: bool = False) -> Tuple[Any, Any, jnp.ndarray, jnp.ndarray]:
+@partial(jit, static_argnames=('max_iter', 'tol'))
+def optimise_mean_kernel(mean_kernel: AbstractKernel, all_inputs: jnp.ndarray, prior_mean: jnp.ndarray,
+						 post_mean: jnp.ndarray, post_cov: jnp.ndarray, jitter: jnp.ndarray = jnp.array(1e-5),
+						 max_iter: int = 100, tol: float = 1e-3) -> Tuple[AbstractKernel, jnp.ndarray]:
 	"""
-	Optimise the hyperparameters of the mean and task kernels using L-BFGS and the corrected likelihood of Magma.
+	Optimise the hyperparameters of the mean kernel using L-BFGS and the corrected likelihood of Magma.
 
 	:param mean_kernel: Kernel to optimise the mean process covariance.
-	:param task_kernel: Kernel to optimise the task covariance.
-	:param inputs: Inputs of every point, for every task, padded with NaNs. Shape (T, Max_N_i, I)
-	:param outputs: Outputs of every point, for every task, padded with NaNs. Shape (T, Max_N_i, O)
-	:param mappings: Indices of every input in the all_inputs array, padded with len(all_inputs). Shape (T, Max_N_i)
 	:param all_inputs: all distinct inputs. Shape (N, I)
 	:param prior_mean: prior mean over all_inputs or grid if provided. Shape (N,) or scalar if constant
 	across the domain.
 	:param post_mean: hyperpost mean over all_inputs. Shape (N,)
 	:param post_cov: hyperpost covariance over all_inputs. Shape (N, N)
-	:param jitter: jitter term to ensure numerical stability. Default is 1e-10
+	:param jitter: jitter term to ensure numerical stability. Default is 1e-5
 	:param max_iter: maximum number of iterations for the optimisation, default is 100.
 	:param tol: the optimisation stops when the change in likelihood is below this threshold, default is 1e-3.
-	:param verbose: if True, prints the optimisation progress, default is False.
 
-	:return: A tuple of the optimised mean kernel, task kernel, mean log-likelihood, and task log-likelihood.
+	:return: A tuple of the optimised mean kernel and mean log-likelihood.
 	"""
+	opt = optax.lbfgs()
 
-	# Optimise mean kernel
-	if verbose:
-		mean_opt = optax.chain(print_info(), optax.lbfgs())
-	else:
-		mean_opt = optax.lbfgs()
-
-	def mean_fun_wrapper(kern):
+	def fun_wrapper(kern):
 		res = magma_neg_likelihood(kern, all_inputs, post_mean, None, prior_mean, post_cov, jitter=jitter)
 		return res
 
-	new_mean_kernel, _, mean_llh = run_opt(mean_kernel, mean_fun_wrapper, mean_opt, max_iter=max_iter, tol=tol)
+	new_mean_kernel, _, mean_llh = optimise_kernel(mean_kernel, fun_wrapper, opt, max_iter=max_iter, tol=tol)
 
-	# Optimise task kernel
-	if verbose:
-		task_opt = optax.chain(print_info(), optax.lbfgs())
-	else:
-		task_opt = optax.lbfgs()
+	return new_mean_kernel, mean_llh
+
+
+@partial(jit, static_argnames=('max_iter', 'tol'))
+def optimise_task_kernel(task_kernel: AbstractKernel, inputs: jnp.ndarray, outputs: jnp.ndarray,
+						 mappings: jnp.ndarray, post_mean: jnp.ndarray, post_cov: jnp.ndarray,
+						 jitter: jnp.ndarray = jnp.array(1e-5), max_iter: int = 100, tol: float = 1e-3) -> Tuple[AbstractKernel, jnp.ndarray]:
+	"""Optimise the hyperparameters of the task kernel using L-BFGS and the corrected likelihood of Magma.
+
+	:param task_kernel: Kernel to optimise the task covariance.
+	:param inputs: Inputs of every point, for every task, padded with NaNs. Shape (T, Max_N_i, I)
+	:param outputs: Outputs of every point, for every task, padded with NaNs. Shape (T, Max_N_i, O)
+	:param mappings: Indices of every input in the all_inputs array, padded with len(all_inputs). Shape (T, Max_N_i)
+	across the domain.
+	:param post_mean: hyperpost mean over all_inputs. Shape (N,)
+	:param post_cov: hyperpost covariance over all_inputs. Shape (N, N)
+	:param jitter: jitter term to ensure numerical stability. Default is 1e-5
+	:param max_iter: maximum number of iterations for the optimisation, default is 100.
+	:param tol: the optimisation stops when the change in likelihood is below this threshold, default is 1e-3.
+	:return: A tuple of the optimised task kernel and mean log-likelihood.
+	"""
+	opt = optax.lbfgs()
 
 	def task_fun_wrapper(kern):
 		res = magma_neg_likelihood(kern, inputs, outputs, mappings, post_mean, post_cov, jitter=jitter).sum()
 		return res
 
-	new_task_kernel, _, task_llh = run_opt(task_kernel, task_fun_wrapper, task_opt, max_iter=max_iter, tol=tol)
+	new_task_kernel, _, task_llh = optimise_kernel(task_kernel, task_fun_wrapper, opt, max_iter=max_iter, tol=tol)
 
-	return new_mean_kernel, new_task_kernel, mean_llh, task_llh
+	return new_task_kernel, task_llh

@@ -1,17 +1,22 @@
-from functools import partial
-
 import jax.numpy as jnp
 from jax import jit, vmap
 
-from MagmaClustPy.linalg import cho_solve, cho_factor
+from MagmaClustPy.linalg import cho_factor
 from jax.lax.linalg import triangular_solve
 
 
 @jit
-def predict_single_task(gamma_on_grid, post_mean_grid, padded_output_pred, mappings_pred_on_grid):
+def predict_single_task(single_task_kernel, grid, post_cov_grid, post_mean_grid, padded_output_pred, mappings_pred_on_grid):
+	gamma_on_grid = post_cov_grid + single_task_kernel(grid)
+
 	post_mean_at_pred = jnp.where(~jnp.isnan(padded_output_pred), post_mean_grid[mappings_pred_on_grid], 0.)
 
 	gamma_at_pred = gamma_on_grid[jnp.ix_(mappings_pred_on_grid, mappings_pred_on_grid)]
+
+	# FIXME: there's a bug regarding indexing of gamma_crossed. Following comments are a first attempt to fix it.
+	#  all_mappings = jnp.arange(0, len(grid))
+	#  mappings_not_pred_on_grid = jnp.where(~jnp.isin(all_mappings, mappings_pred_on_grid), all_mappings, len(all_mappings))
+	#  gamma_crossed = gamma_on_grid[mappings_pred_on_grid, mappings_not_pred_on_grid]
 	gamma_crossed = gamma_on_grid[mappings_pred_on_grid, :]
 
 	padding_mask = ~jnp.isnan(padded_output_pred)[:, None] & ~jnp.isnan(padded_output_pred)[None, :]
@@ -28,27 +33,14 @@ def predict_single_task(gamma_on_grid, post_mean_grid, padded_output_pred, mappi
 	return pred_mean, pred_cov
 
 
-@partial(jit, static_argnames=["train_batch_dim"])
-def predict(post_mean_grid, post_cov_grid, padded_outputs_pred, mappings_pred_on_grid, grid, task_kernel_train,
-            train_batch_dim, task_kernel_pred=None):
-	# Compute the prediction covariance on full grid
-	if task_kernel_pred is None:
-		if task_kernel_train.has_distinct_hyperparameters(train_batch_dim):
-			raise ValueError(
-				'Task kernel for pred was not provided, so Magma tries to use the task kernel from training, but it has '
-				'distinct hyperparameters. Either provide a task kernel for prediction or use a training task kernel '
-				'with shared hyperparameters.')
-		covs_pred_on_grid = task_kernel_train(grid)
-	else:
-		# We have to train the task kernel for prediction
-		# TODO
-		raise NotImplementedError("Prediction with re-trained task kernel not supported yet")
-
-	gamma_on_grid = post_cov_grid + covs_pred_on_grid
-
+@jit
+def predict(post_mean_grid, post_cov_grid, padded_outputs_pred, mappings_pred_on_grid, grid, pred_task_kernel):
 	# In multi-output, we want to flatten the outputs.
 	# The user should provide a specific Kernel to compute a cross-covariance with the right shape too
 	padded_outputs_pred = padded_outputs_pred.reshape(padded_outputs_pred.shape[0], -1)
 
-	return vmap(predict_single_task, in_axes=(None, None, 0, 0))(gamma_on_grid, post_mean_grid, padded_outputs_pred,
-	                                                             mappings_pred_on_grid)
+	hp_vmap = pred_task_kernel.get_hp_vmap_in_axes(padded_outputs_pred.shape[0])
+
+	return vmap(predict_single_task, in_axes=(hp_vmap, None, None, None, 0, 0))(pred_task_kernel, grid,
+	                                                                            post_cov_grid, post_mean_grid,
+	                                                                            padded_outputs_pred, mappings_pred_on_grid)

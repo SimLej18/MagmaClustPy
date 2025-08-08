@@ -89,10 +89,14 @@ class StaticAbstractKernel:
 		:param x2: vector array (B, M)
 		:return: tensor array (B, N, M)
 		"""
-		has_input_dim = lambda param: hasattr(param, 'shape') and len(param.shape) > 0 and param.shape[0] == x1.shape[0]
-		hp_vmap = tree_map(lambda param: 0 if has_input_dim(param) else None, kern)
+		hp_vmap = cls.get_hp_vmap_in_axes(kern, len(x1))
 
 		return vmap(lambda k, x, y: cls.cross_cov_matrix(k, x, y), in_axes=(hp_vmap, 0, 0))(kern, x1, x2)
+
+	@classmethod
+	def get_hp_vmap_in_axes(cls, kern, input_dim:int) -> jnp.ndarray:
+		has_input_dim = lambda param: hasattr(param, 'shape') and len(param.shape) > 0 and param.shape[0] == input_dim
+		return tree_map(lambda param: 0 if has_input_dim(param) else None, kern)
 
 
 @register_pytree_node_class
@@ -153,6 +157,10 @@ class AbstractKernel:
 				f"Invalid input dimensions: x1 has shape {x1.shape}, x2 has shape {x2.shape}. "
 				"Expected 1D, 2D arrays or 3D arrays for batched inputs."
 			)
+
+	def get_hp_vmap_in_axes(self, input_dim: int):
+		# Compute the vmap in_axes for the kernel based on the input dimension
+		return self.static_class.get_hp_vmap_in_axes(self, input_dim)
 
 	def has_distinct_hyperparameters(self, inputs_first_dim) -> bool:
 		"""

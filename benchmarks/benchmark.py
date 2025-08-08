@@ -30,7 +30,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Local imports
 from Kernax import SEMagmaKernel, DiagKernel, ExpKernel
 from MagmaClustPy.hyperpost import hyperpost
-from MagmaClustPy.hp_optimisation import optimise_hyperparameters
+from MagmaClustPy.hp_optimisation import optimise_mean_kernel, optimise_task_kernel
 from MagmaClustPy.utils import preprocess_db
 from MagmaClustPy.linalg import lexicographic_sort, compute_mapping
 from MagmaClustPy.prediction import predict
@@ -109,17 +109,15 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 		                                prior_mean, mean_kernel, task_kernel)
 
 		# m-step: update hyperparameters
-		mean_kernel, task_kernel, mean_llh, task_llh = optimise_hyperparameters(mean_kernel, task_kernel,
-		                                                                        padded_inputs_train,
-		                                                                        padded_outputs_train, mappings_train,
-		                                                                        all_inputs_train, prior_mean, post_mean,
-		                                                                        post_cov, jitter=jitter,
-		                                                                        verbose=VERBOSE)
+		mean_kernel, mean_llh = optimise_mean_kernel(mean_kernel, all_inputs_train, prior_mean, post_mean, post_cov,
+		                                             jitter=jitter)
+		task_kernel, task_llh = optimise_task_kernel(task_kernel, padded_inputs_train, padded_outputs_train,
+		                                             mappings_train, post_mean, post_cov, jitter=jitter)
 
 		# Check for NaN values and stop early
-		# if jnp.isnan(mean_llh) or jnp.isnan(task_llh):
-		#	logging.error(f"NaN detected at iteration {i}. Stopping training.")
-		#	break
+		if jnp.isnan(mean_llh) or jnp.isnan(task_llh):
+			logging.error(f"NaN detected at iteration {i}. Stopping training.")
+			break
 
 		# Check convergence
 		if i > 0:
@@ -141,6 +139,23 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 	logging.info(f"Training completed in {training_end - loading_end:.2f}s")
 
 	## Prediction
+	# If distinct hyperparameters are used, we need to optimise a prediction task kernel
+	if not shared_hp:
+		# Initialise the task kernel for prediction
+		length_scales = jnp.array([0.3] * padded_inputs_pred.shape[0])
+		variances = jnp.array([1.] * padded_inputs_pred.shape[0])
+		noises = jnp.array([-2.5] * padded_inputs_pred.shape[0])
+		task_kernel_pred = SEMagmaKernel(length_scale=length_scales, variance=variances) + DiagKernel(ExpKernel(noises))
+
+		# Optimise the task kernel for prediction
+		task_kernel_pred, _ = optimise_task_kernel(task_kernel_pred, padded_inputs_pred, padded_outputs_pred,
+		                                             mappings_pred, post_mean, post_cov, jitter=jitter)
+		pred_retrain_end = time.time()
+		logging.info(f"Optimised task kernel for prediction in {pred_retrain_end - training_end:.2f}s")
+	else:
+		task_kernel_pred = task_kernel
+		pred_retrain_end = time.time()
+
 	# Define the grid for prediction
 	grid = jnp.linspace(jnp.min(all_inputs_train - grid_margin, axis=0),
 	                    jnp.max(all_inputs_train + grid_margin, axis=0), grid_size)
@@ -162,10 +177,10 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 
 	# Compute predictions
 	pred_mean, pred_cov = predict(post_mean_grid, post_cov_grid, padded_outputs_pred, mappings_pred_on_grid, full_grid,
-	                              task_kernel, len(padded_inputs_train))
+	                              task_kernel_pred)
 
 	prediction_end = time.time()
-	logging.info(f"Prediction completed in {prediction_end - training_end:.2f}s")
+	logging.info(f"Prediction completed in {prediction_end - pred_retrain_end:.2f}s")
 
 	## End timer
 	full_pipeline_end = time.time()
