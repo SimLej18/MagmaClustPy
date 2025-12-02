@@ -23,12 +23,14 @@ from jax import vmap
 
 # Other imports
 import pandas as pd
-import logging
 
+import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+from kernax import DiagKernel, ExpKernel, BatchKernel
+
 # Local imports
-from Kernax import SEMagmaKernel, DiagKernel, ExpKernel
+from MagmaClustPy.custom_kernels import SEMagmaKernel
 from MagmaClustPy.hyperpost import hyperpost
 from MagmaClustPy.hp_optimisation import optimise_mean_kernel, optimise_task_kernel
 from MagmaClustPy.utils import preprocess_db
@@ -57,7 +59,7 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 	start = time.time()
 
 	## Data import
-	dataset_file = os.path.join("datasets",
+	dataset_file = os.path.join("datasets/K=1/",
 	                            f"{dataset}_{'shared_input' if shared_input else 'distinct_input'}_{'shared_hp' if shared_hp else 'distinct_hp'}.csv")
 	try:
 		db = pd.read_csv(dataset_file)
@@ -88,13 +90,14 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 	mean_kernel = SEMagmaKernel(length_scale=jnp.array(0.9), variance=jnp.array(1.5))
 
 	if shared_hp:
-		task_kernel = SEMagmaKernel(length_scale=jnp.array(.3), variance=jnp.array(1.)) + DiagKernel(
-			ExpKernel(jnp.array(2.5)))
+		task_kernel = SEMagmaKernel(
+			length_scale=jnp.array(.3), variance=jnp.array(1.)) + DiagKernel(ExpKernel(jnp.array(2.5)))
+		task_kernel = BatchKernel(task_kernel,
+		                          batch_size=padded_inputs_train.shape[0], batch_in_axes=None, batch_over_inputs=True)
 	else:
-		length_scales = jnp.array([0.3] * padded_inputs_train.shape[0])
-		variances = jnp.array([1.] * padded_inputs_train.shape[0])
-		noises = jnp.array([-2.5] * padded_inputs_train.shape[0])
-		task_kernel = SEMagmaKernel(length_scale=length_scales, variance=variances) + DiagKernel(ExpKernel(noises))
+		task_kernel = SEMagmaKernel(length_scale=jnp.array(.3), variance=jnp.array(1.)) + DiagKernel(ExpKernel(jnp.array(2.5)))
+		task_kernel = BatchKernel(task_kernel,
+		                          batch_size=padded_inputs_train.shape[0], batch_in_axes=0, batch_over_inputs=True)
 
 	# Training loop
 	prev_mean_llh = jnp.inf
@@ -106,7 +109,8 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 			f"Iteration {i:4}\tLlhs: {prev_mean_llh:12.4f}, {prev_task_llh:12.4f}\tConv. Ratio: {conv_ratio:.5f}\t\n\tMean: {mean_kernel}\t\n\tTask: {task_kernel}")
 		# e-step: compute hyper-posterior
 		post_mean, post_cov = hyperpost(padded_inputs_train, padded_outputs_train, mappings_train, all_inputs_train,
-		                                prior_mean, mean_kernel, task_kernel)
+		                                prior_mean, mean_kernel, task_kernel,
+		                                shared_input=shared_input, shared_hp=shared_hp)
 
 		# m-step: update hyperparameters
 		mean_kernel, mean_llh = optimise_mean_kernel(mean_kernel, all_inputs_train, prior_mean, post_mean, post_cov,
@@ -140,21 +144,28 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 
 	## Prediction
 	# If distinct hyperparameters are used, we need to optimise a prediction task kernel
-	if not shared_hp:
-		# Initialise the task kernel for prediction
-		length_scales = jnp.array([0.3] * padded_inputs_pred.shape[0])
-		variances = jnp.array([1.] * padded_inputs_pred.shape[0])
-		noises = jnp.array([-2.5] * padded_inputs_pred.shape[0])
-		task_kernel_pred = SEMagmaKernel(length_scale=length_scales, variance=variances) + DiagKernel(ExpKernel(noises))
+	if shared_hp:
+		# We can keep the same task kernel for prediction, just batch it to the new number of tasks
+		task_kernel_pred = BatchKernel(task_kernel.inner_kernel,
+		                               batch_size=padded_inputs_pred.shape[0],
+		                               batch_in_axes=None,
+		                               batch_over_inputs=True)
+		pred_retrain_end = time.time()
+	else:
+		# Initialise the task kernel for prediction to the average hyperparameters found during training
+		task_kernel_pred = SEMagmaKernel(length_scale=jnp.mean(task_kernel.inner_kernel.left_kernel.length_scale),
+		                                 variance=jnp.mean(task_kernel.inner_kernel.left_kernel.variance)) + DiagKernel(
+			ExpKernel(jnp.mean(task_kernel.inner_kernel.right_kernel.inner_kernel.inner_kernel.value)))
+		task_kernel_pred = BatchKernel(task_kernel_pred,
+		                               batch_size=padded_inputs_pred.shape[0],
+		                               batch_in_axes=0,
+		                               batch_over_inputs=True)
 
 		# Optimise the task kernel for prediction
 		task_kernel_pred, _ = optimise_task_kernel(task_kernel_pred, padded_inputs_pred, padded_outputs_pred,
 		                                             mappings_pred, post_mean, post_cov, jitter=jitter)
 		pred_retrain_end = time.time()
 		logging.info(f"Optimised task kernel for prediction in {pred_retrain_end - training_end:.2f}s")
-	else:
-		task_kernel_pred = task_kernel
-		pred_retrain_end = time.time()
 
 	# Define the grid for prediction
 	grid = jnp.linspace(jnp.min(all_inputs_train - grid_margin, axis=0),
@@ -173,7 +184,9 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 	                                          all_inputs=full_grid,
 	                                          prior_mean=jnp.array(0.),
 	                                          mean_kernel=mean_kernel,
-	                                          task_kernel=task_kernel)
+	                                          task_kernel=task_kernel,
+	                                          shared_input=False,  # As we use a grid
+	                                          shared_hp=shared_hp)
 
 	# Compute predictions
 	pred_mean, pred_cov = predict(post_mean_grid, post_cov_grid, padded_outputs_pred, mappings_pred_on_grid, full_grid,

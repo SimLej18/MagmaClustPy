@@ -4,7 +4,7 @@ from functools import partial
 from jax import jit
 from jax import numpy as jnp
 
-from Kernax import AbstractKernel
+from kernax import AbstractKernel
 from MagmaClustPy.linalg import cho_factor, cho_solve, map_to_full_matrix_batch, map_to_full_array_batch
 
 
@@ -110,7 +110,8 @@ def hyperpost(inputs: jnp.ndarray, outputs: jnp.ndarray, mappings: jnp.ndarray, 
 
 	if shared_input:
 		if shared_hp:
-			task_covs = task_kernel(all_inputs)  # Shape: (Max_Ni, Max_Ni)
+			# FIXME: this assumes that the outer-most kernel is a BatchKernel
+			task_covs = task_kernel.inner_kernel(all_inputs)  # Shape: (Max_Ni, Max_Ni)
 		else:
 			task_covs = task_kernel(inputs)  # Shape: (T, Max_Ni, Max_Ni)
 

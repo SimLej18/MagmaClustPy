@@ -52,7 +52,7 @@ def magma_neg_likelihood(kernel, inputs: jnp.ndarray, outputs: jnp.ndarray, mapp
                          mean_process_cov: jnp.ndarray, jitter: jnp.ndarray = jnp.array(1e-10)) -> Union[
 	jnp.ndarray, float]:
 	"""
-	Computes the MAGMA log-likelihood.
+	Computes the MAGMA negative log-likelihood.
 
 	:param kernel: The kernel to optimise. This kernel is used to compute the covariance (matrix `S`).
 	:param inputs: Inputs on which to compute the covariance matrix (shape (N, I)) or (T, Max_N_i, I).
@@ -63,7 +63,7 @@ def magma_neg_likelihood(kernel, inputs: jnp.ndarray, outputs: jnp.ndarray, mapp
 	inputs. Shape (T, Max_N_i)
 	:param jitter: jitter term to ensure numerical stability. Default is 1e-10
 
-	:return: The negative log-likelihood (scalar)
+	:return: The negative log-likelihood (scalar or (T, ))
 	"""
 	# In multi-output, we want to flatten the outputs.
 	# The user should provide a specific Kernel to compute a cross-covariance with the right shape too

@@ -7,7 +7,7 @@ import jax.numpy as jnp
 import optax
 import optax.tree_utils as otu
 
-from Kernax import AbstractKernel
+from kernax import AbstractKernel
 from MagmaClustPy.likelihoods import magma_neg_likelihood
 
 

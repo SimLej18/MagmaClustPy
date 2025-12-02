@@ -1,8 +1,9 @@
 import jax.numpy as jnp
 from jax import jit, vmap
+from jax.lax.linalg import triangular_solve
+from kernax import BatchKernel
 
 from MagmaClustPy.linalg import cho_factor
-from jax.lax.linalg import triangular_solve
 
 
 @jit
@@ -34,13 +35,10 @@ def predict_single_task(single_task_kernel, grid, post_cov_grid, post_mean_grid,
 
 
 @jit
-def predict(post_mean_grid, post_cov_grid, padded_outputs_pred, mappings_pred_on_grid, grid, pred_task_kernel):
+def predict(post_mean_grid, post_cov_grid, padded_outputs_pred, mappings_pred_on_grid, grid, pred_task_kernel: BatchKernel):
 	# In multi-output, we want to flatten the outputs.
 	# The user should provide a specific Kernel to compute a cross-covariance with the right shape too
 	padded_outputs_pred = padded_outputs_pred.reshape(padded_outputs_pred.shape[0], -1)
 
-	hp_vmap = pred_task_kernel.get_hp_vmap_in_axes(padded_outputs_pred.shape[0])
-
-	return vmap(predict_single_task, in_axes=(hp_vmap, None, None, None, 0, 0))(pred_task_kernel, grid,
-	                                                                            post_cov_grid, post_mean_grid,
-	                                                                            padded_outputs_pred, mappings_pred_on_grid)
+	return vmap(predict_single_task, in_axes=(pred_task_kernel.batch_in_axes, None, None, None, 0, 0))(
+		pred_task_kernel.inner_kernel, grid, post_cov_grid, post_mean_grid, padded_outputs_pred, mappings_pred_on_grid)
