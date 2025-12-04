@@ -113,6 +113,9 @@ def hyperpost(inputs: jnp.ndarray, outputs: jnp.ndarray, mappings: jnp.ndarray, 
 			# FIXME: this assumes that the outer-most kernel is a BatchKernel
 			task_covs = task_kernel.inner_kernel(all_inputs)  # Shape: (Max_Ni, Max_Ni)
 		else:
+			# TODO: possible optimisation
+			#  Rather than computing the kernel on inputs, compute it on all_inputs, broadcast to (T, Max_Ni, Max_Ni),
+			#  apply a mask using mappings and then invert. This may avoid a lot of kernel calls.
 			task_covs = task_kernel(inputs)  # Shape: (T, Max_Ni, Max_Ni)
 
 		return hyperpost_shared_input(outputs, prior_mean, mean_cov_u, mean_cov_inv, task_covs, mixture_coeffs)
