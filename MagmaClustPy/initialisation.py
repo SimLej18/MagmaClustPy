@@ -17,14 +17,14 @@ from MagmaClustPy.kmeans import k_means
 # TODO: init_prior_mean
 
 
-@partial(jit, static_argnums=(1, 2))
+#@partial(jit, static_argnums=(1, 2))
 def k_means_init(padded_outputs, k, distinct_hp=False):
 	"""
 	Compute the initial assignment of outputs between k clusters using k_means and a naive dimensionality reduction based on task statistics (min, mean, max)
 
 	:param padded_outputs: the outputs from each task, (jnp.array, shape=(T, Max_N))
 	:param k: the number of clusters (int)
-	:param distinct_hp: whether distinct hyperparameters are used (bool, default=False)
+	:param distinct_hp: whether distinct hyperparameters are used (bool, default=False)  # TODO: change to shared_hp for consistency
 	:return: the initial mixture as a one-hot encoded array (jnp.array, shape=(k, T))
 	"""
 	outputs = padded_outputs.squeeze().T

@@ -19,7 +19,7 @@ def cho_factor(cov: jnp.ndarray, init_jitter: jnp.ndarray = jnp.array(1e-8),
 	It automatically gets the smallest jitter that makes the covariance matrix PSD
 
 	:param cov: Covariance matrix to factorise
-	:param init_jitter: Initial jitter value to start with (default is 1e-10)
+	:param init_jitter: Initial jitter value to start with (default is 1e-8)
 	:param max_jitter: Maximum jitter value to try (default is 1.0)
 
 	:return: Cholesky upper factorisation of the covariance matrix. If it still contains NaNs, it means the matrix is still not PSD even with the maximum jitter.
