@@ -8,7 +8,7 @@ import optax
 import optax.tree_utils as otu
 
 from kernax import AbstractKernel
-from MagmaClustPy.likelihoods import magma_neg_likelihood
+from MagmaClustPy.likelihoods import magma_nll
 
 
 # Adapted from optax doc (https://optax.readthedocs.io/en/latest/_collections/examples/lbfgs.html#l-bfgs-solver)
