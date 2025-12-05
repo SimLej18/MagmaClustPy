@@ -1,37 +1,54 @@
-from typing import Optional, Union
+from typing import Optional
 
 import jax.numpy as jnp
-from jax import jit, vmap
+from jax import jit, Array
 from jax.scipy.stats.multivariate_normal import logpdf
+from kernax import AbstractKernel
 
 from MagmaClustPy.linalg import extract_from_full_array, extract_from_full_matrix, solve_right_cholesky
 
 
 @jit
-def magma_neg_likelihood_on_cov(covar: jnp.ndarray, outputs: jnp.ndarray, mean: jnp.ndarray,
-                                mean_process_cov: jnp.ndarray, mapping: Optional[jnp.ndarray],
-                                jitter: jnp.ndarray = jnp.array(1e-10)) -> jnp.ndarray:
+def magma_nll(kernel: AbstractKernel, inputs: Array, outputs: Array, mean: Array,
+                         mean_process_cov: Array, mappings: Optional[Array],
+                         jitter: Optional[Array] = jnp.array(1e-10)) -> Array:
+	"""
+	Computes the Magma Negative Log Likelihood for a given sequence of points and covariance kernel, relative to a
+	posterior mean and covariance.
+
+	:param kernel: A kernel to compute the covariance on inputs
+	:param inputs: The inputs from one task. Shape: (Max_N_i, D)
+	:param outputs: The outputs from one task, corresponding to the inputs. Shape: (Max_N_i, D)
+	:param mean: The posterior mean to which the outputs are compared. Shape (N, D)
+	:param mean_process_cov: The posterior covariance matrix to which the task covariance is compared. Shape (N, N)
+	:param mappings: The mappings from input points (in 0..Max_N_i) to full grid (0..N). Shape (Max_N_i, )
+	:param jitter: The jitter to use. Scalar.
+
+	:return: The negative log-likelihood with the magma correction term. Scalar.
+	"""
 	outputs = outputs.ravel()  # For multi-output, we want to flatten the outputs.
 	mean = mean.ravel()  # As the goal of likelihood is to see if the mean is close to the outputs, we want to flatten
 	# it too.
 
 	jitter_matrix = jnp.eye(outputs.shape[0]) * jitter
 
-	eyed_covar = jnp.where(jnp.isnan(covar), jnp.eye(covar.shape[0]), covar)
+	cov = kernel(inputs)
+
+	eyed_cov = jnp.where(jnp.isnan(cov), jnp.eye(cov.shape[0]), cov)
 	zeroed_outputs = jnp.nan_to_num(outputs)
-	if mapping is not None:
-		zeroed_mean = jnp.nan_to_num(extract_from_full_array(mean, outputs, mapping))
-		eyed_mean_cov = jnp.where(jnp.isnan(covar), jnp.eye(covar.shape[0]),
-		                          extract_from_full_matrix(mean_process_cov, outputs, mapping))
+	if mappings is not None:
+		zeroed_mean = jnp.nan_to_num(extract_from_full_array(mean, outputs, mappings))
+		eyed_mean_cov = jnp.where(jnp.isnan(cov), jnp.eye(cov.shape[0]),
+		                          extract_from_full_matrix(mean_process_cov, outputs, mappings))
 	else:
 		zeroed_mean = jnp.nan_to_num(mean)
-		eyed_mean_cov = jnp.where(jnp.isnan(covar), jnp.eye(covar.shape[0]), mean_process_cov)
+		eyed_mean_cov = jnp.where(jnp.isnan(cov), jnp.eye(cov.shape[0]), mean_process_cov)
 
 	# Compute log-likelihood
-	multiv_neg_log_lik = -logpdf(zeroed_outputs, zeroed_mean, eyed_covar + jitter_matrix)
+	multiv_neg_log_lik = -logpdf(zeroed_outputs, zeroed_mean, eyed_cov + jitter_matrix)
 
 	# Compute correction term
-	correction = 0.5 * jnp.trace(solve_right_cholesky(eyed_covar, eyed_mean_cov, jitter=jitter))
+	correction = 0.5 * jnp.trace(solve_right_cholesky(eyed_cov, eyed_mean_cov, jitter=jitter))
 
 	# Compute padding corrections
 	# The logpdf is computed as:
@@ -44,42 +61,3 @@ def magma_neg_likelihood_on_cov(covar: jnp.ndarray, outputs: jnp.ndarray, mean: 
 	corr_pad_correction = 0.5 * jnp.sum(jnp.isnan(outputs))
 
 	return (multiv_neg_log_lik - nll_pad_correction) + (correction - corr_pad_correction)
-
-
-@jit
-def magma_neg_likelihood(kernel, inputs: jnp.ndarray, outputs: jnp.ndarray, mappings: Optional[jnp.ndarray],
-                         mean: jnp.ndarray,
-                         mean_process_cov: jnp.ndarray, jitter: jnp.ndarray = jnp.array(1e-10)) -> Union[
-	jnp.ndarray, float]:
-	"""
-	Computes the MAGMA negative log-likelihood.
-
-	:param kernel: The kernel to optimise. This kernel is used to compute the covariance (matrix `S`).
-	:param inputs: Inputs on which to compute the covariance matrix (shape (N, I)) or (T, Max_N_i, I).
-	:param outputs: The observed values for each input (shape (N, O) or (T, Max_N_i, O)).
-	:param mappings: The indices of the inputs in the all_inputs array, if we compute the likelihood on a batch of
-	:param mean: The mean over the inputs (scalar or vector of shape (N,)).
-	:param mean_process_cov: The hyperpost mean process covariance (matrix K^t)
-	inputs. Shape (T, Max_N_i)
-	:param jitter: jitter term to ensure numerical stability. Default is 1e-10
-
-	:return: The negative log-likelihood (scalar or (T, ))
-	"""
-	# In multi-output, we want to flatten the outputs.
-	# The user should provide a specific Kernel to compute a cross-covariance with the right shape too
-	outputs = outputs.reshape(outputs.shape[0], -1)
-
-	if mean.ndim == 0:
-		mean = jnp.broadcast_to(mean[None], outputs.shape)
-
-	covar = kernel(inputs)
-
-	# check if we need to vmap
-	if inputs.ndim == 2:
-		return magma_neg_likelihood_on_cov(covar, outputs, mean, mean_process_cov, mappings, jitter)
-	elif inputs.ndim == 3:
-		return vmap(magma_neg_likelihood_on_cov, in_axes=(0, 0, None, None, 0, None))(covar, outputs, mean,
-		                                                                              mean_process_cov, mappings,
-		                                                                              jitter)
-	else:
-		raise ValueError("inputs must be either 1D or 2D")
