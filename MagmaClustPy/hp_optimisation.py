@@ -1,4 +1,4 @@
-from typing import Tuple, Callable, Any
+from typing import Tuple, Callable, Any, Optional
 from functools import partial
 
 import jax
@@ -67,20 +67,20 @@ def optimise_mean_kernel(mean_kernel: AbstractKernel, all_inputs: Array, prior_m
 
 	def fun_wrapper(kern):
 		cluster_magma_nll = vmap(magma_nll, in_axes=(None, None, 0, None, 0, None, None))
-		res = cluster_magma_nll(kern, all_inputs, post_means, prior_mean, post_covs, None, jitter).sum()
-		return res
+		res = cluster_magma_nll(kern, all_inputs, post_means, prior_mean, post_covs, None, jitter)
+		return res.sum()
 
 	new_mean_kernel, _, mean_llh = optimise_kernel(mean_kernel, fun_wrapper, opt, max_iter=max_iter, tol=tol)
 
 	return new_mean_kernel, mean_llh
 
 
-@partial(jit, static_argnames=('max_iter', 'tol'))
-def optimise_task_kernel(task_kernel: AbstractKernel, inputs: jnp.ndarray, outputs: jnp.ndarray,
-						 mappings: jnp.ndarray, post_means: jnp.ndarray, post_covs: jnp.ndarray,
-                         shared_hp: bool, cluster_hp: bool,
-						 jitter: jnp.ndarray = jnp.array(1e-5), max_iter: int = 100, tol: float = 1e-3) \
-		-> Tuple[AbstractKernel, jnp.ndarray]:
+@partial(jit, static_argnames=('max_iter', 'tol', 'shared_hp', 'cluster_hp'))
+def optimise_task_kernel(task_kernel: AbstractKernel, inputs: Array, outputs: Array,
+						 mappings: Array, post_means: Array, post_covs: Array,
+                         shared_hp: bool, cluster_hp: bool, mixture_coeffs: Optional[Array] = None,
+						 jitter: Array = jnp.array(1e-5), max_iter: int = 100, tol: float = 1e-3) \
+		-> Tuple[AbstractKernel, Array]:
 	"""Optimise the hyperparameters of the task kernel using L-BFGS and the corrected likelihood of Magma.
 
 	:param task_kernel: Kernel to optimise the task covariance.
@@ -92,6 +92,7 @@ def optimise_task_kernel(task_kernel: AbstractKernel, inputs: jnp.ndarray, outpu
 	:param post_covs: hyperpost covariance over all_inputs. Shape (N, N)
 	:param shared_hp: whether the kernel uses shared hyperparameters.
 	:param cluster_hp: whether the kernel uses cluster hyperparameters.
+	:param mixture_coeffs: coefficients of the clustering mixture. Shape (K, T)
 	:param jitter: jitter term to ensure numerical stability. Default is 1e-5
 	:param max_iter: maximum number of iterations for the optimisation, default is 100.
 	:param tol: the optimisation stops when the change in likelihood is below this threshold, default is 1e-3.
@@ -105,9 +106,14 @@ def optimise_task_kernel(task_kernel: AbstractKernel, inputs: jnp.ndarray, outpu
 		cluster_batched_magma_nll = vmap(
 			lambda k, *args: task_batched_magma_nll(k.inner_kernel if cluster_hp else k, *args),
 			in_axes=(0 if cluster_hp else None, None, None, 0, 0, None, None))
-		res = cluster_batched_magma_nll(kern.inner_kernel, inputs, outputs, post_means, post_covs, mappings, jitter).sum()
+		res = cluster_batched_magma_nll(kern.inner_kernel, inputs, outputs, post_means, post_covs, mappings, jitter)
 
-		return res
+		if mixture_coeffs is None or (not shared_hp and cluster_hp):
+			# No need to ponderate by mixture coefficients, we want to optimise every parameter
+			return res.sum()
+
+		# In every other scenarios, we multiply by mixture_coeffs
+		return (res * mixture_coeffs).sum()
 
 	new_task_kernel, _, task_llh = optimise_kernel(task_kernel, task_fun_wrapper, opt, max_iter=max_iter, tol=tol)
 
