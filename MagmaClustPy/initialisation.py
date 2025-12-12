@@ -18,13 +18,13 @@ from MagmaClustPy.kmeans import k_means
 
 
 #@partial(jit, static_argnums=(1, 2))
-def k_means_init(padded_outputs, k, distinct_hp=False):
+def init_mixture(padded_outputs, k, shared_hp=True):
 	"""
 	Compute the initial assignment of outputs between k clusters using k_means and a naive dimensionality reduction based on task statistics (min, mean, max)
 
 	:param padded_outputs: the outputs from each task, (jnp.array, shape=(T, Max_N))
 	:param k: the number of clusters (int)
-	:param distinct_hp: whether distinct hyperparameters are used (bool, default=False)  # TODO: change to shared_hp for consistency
+	:param shared_hp: whether hyperparameters are shared between tasks (bool, default=True)
 	:return: the initial mixture as a one-hot encoded array (jnp.array, shape=(k, T))
 	"""
 	outputs = padded_outputs.squeeze().T
@@ -36,7 +36,7 @@ def k_means_init(padded_outputs, k, distinct_hp=False):
 		jnp.nanmax(outputs, axis=0)  # Max
 	], axis=-1).squeeze()
 
-	if distinct_hp:
+	if not shared_hp:
 		features = jnp.concatenate([
 			features,
 			jnp.nanvar(outputs, axis=0, ddof=1).reshape(-1, 1)  # Variance
