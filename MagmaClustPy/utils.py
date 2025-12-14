@@ -173,3 +173,38 @@ def preprocess_db(db: pd.DataFrame) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarr
 
 	# return jnp.round(padded_inputs, 6), jnp.round(padded_outputs, 6), jnp.round(index_mappings, 6), jnp.round(all_inputs, 6)
 	return padded_inputs, padded_outputs, index_mappings, all_inputs
+
+
+def check_db(db: pd.DataFrame):
+	"""
+	Makes preliminary checks on a database used for Magma(Clust) to prevent errors during runtime, providing more explicit error messages.
+	:param db: the database to check
+	"""
+	# TODO
+	pass
+
+
+def split_db(db: pd.DataFrame, train_ratio: float = 0.9, pred_ratio: float = 0.7) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+	"""
+	Splits a database into training, pred and test sets based on given ratios.
+	:param db: pandas DataFrame with columns "Task_ID", "Input", "Input_ID", "Output", "Output_ID"
+	:param train_ratio: float, ratio of IDs to use for training (default 0.9)
+	:param pred_ratio: float, ratio of inputs per pred ID to use for pred (default 0.7)
+	:return: tuple of pandas DataFrames (db_train, db_pred, db_test)
+	"""
+	# First train_ratio% of IDs are for training, last 100-train_ratio% for testing
+	train_ids = db["Task_ID"].unique()[:int(train_ratio * db["Task_ID"].nunique())]
+	pred_ids = db["Task_ID"].unique()[int(train_ratio * db["Task_ID"].nunique()):]
+
+	db_train = db[db["Task_ID"].isin(train_ids)]
+	db_pred = db[db["Task_ID"].isin(pred_ids)]
+
+	# First pred_ratio% of inputs of each pred_id is for pred, last 100-pred_ratio% for test
+	db_test = db_pred.groupby("Task_ID", group_keys=False).apply(
+	    lambda x: x.iloc[int(pred_ratio * len(x)):]
+	)
+	db_pred = db_pred.groupby("Task_ID", group_keys=False).apply(
+	    lambda x: x.iloc[:int(pred_ratio * len(x))]
+	)
+
+	return db_train.reset_index(drop=True), db_pred.reset_index(drop=True), db_test.reset_index(drop=True)
