@@ -44,3 +44,34 @@ Python conventions.
 implicit rounding of numbers is performed by the library itself.
 * This library uses `logging` instead of `cat`. You can configure the logging level like this: 
 `logging.basicConfig(level=logging.INFO)`.
+
+---
+
+## Development roadmap
+
+- [x] Cluster mixture init and update
+- [x] Cluster hyperpost and HP optim
+- [ ] Model classes
+- [ ] Cluster prediction
+- [ ] Plot utilities
+- [ ] Initializers
+- [ ] Prior means modules
+- [ ] Likelihood modules
+- [ ] Minimal documentation (guides and API)
+- [ ] PyPI package and deployment setup
+
+🚀 Alpha release !
+
+- [ ] Bug test - issue management
+- [ ] Unit test
+- [ ] Multi-output GPs
+- [ ] Complete documentation
+- [ ] Contribution guides
+- [ ] Dev pipeline tools for testing/coverage/...
+
+🚀 1.0.0 release
+
+- [ ] Laplace-Matching likelihoods
+- [ ] Continued development
+
+---
