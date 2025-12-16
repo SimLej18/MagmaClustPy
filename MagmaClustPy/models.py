@@ -14,7 +14,7 @@ from MagmaClustPy.utils import preprocess_db, check_db
 from MagmaClustPy.linalg import compute_mapping, lexicographic_sort
 from MagmaClustPy.hyperpost import hyperpost
 from MagmaClustPy.hp_optimisation import optimise_mean_kernel, optimise_task_kernel
-from MagmaClustPy.prediction import predict
+from MagmaClustPy.prediction import predict_single_cluster
 from MagmaClustPy.mixture import update_mixture
 from MagmaClustPy.initialisation import init_mixture
 from MagmaClustPy.means import BasePriorMean
@@ -241,7 +241,7 @@ class Magma(BaseModel):
 		                                          shared_hp=self.shared_hp)
 
 		# Compute predictions
-		return predict(post_mean_grid, post_cov_grid, self.padded_outputs_pred, mappings_pred_on_grid, full_grid, self.task_kernel_pred)
+		return predict_single_cluster(post_mean_grid, post_cov_grid, self.padded_outputs_pred, mappings_pred_on_grid, full_grid, self.task_kernel_pred)
 
 	def plot_predictions(self):
 		pass
@@ -294,6 +294,10 @@ class MagmaClust(BaseModel):
 
 		self.mixture_train = None
 		self.mixture_pred = None
+
+		self.grid_pred = None
+		self.post_means_pred = None
+		self.post_covs_pred = None
 
 	def batch_kernel(self, kernel, nb_tasks, nb_clusters):
 		if self.shared_hp and not self.cluster_hp:
@@ -441,24 +445,41 @@ class MagmaClust(BaseModel):
 				self.shared_hp, self.cluster_hp, jitter=jitter)
 
 		# Merge grid and all_inputs and compute new mappings
-		full_grid = lexicographic_sort(jnp.unique(jnp.concatenate([self.all_inputs_train, self.all_inputs_pred, grid]), axis=0))
+		self.pred_grid = lexicographic_sort(jnp.unique(jnp.concatenate([self.all_inputs_train, self.all_inputs_pred, grid]), axis=0))
 		# Compute new mappings
-		mappings_train_on_grid = vmap(compute_mapping, in_axes=(None, 0))(full_grid, self.padded_inputs_train)
-		mappings_pred_on_grid = vmap(compute_mapping, in_axes=(None, 0))(full_grid, self.padded_inputs_pred)
+		mappings_train_on_grid = vmap(compute_mapping, in_axes=(None, 0))(self.pred_grid, self.padded_inputs_train)
+		mappings_pred_on_grid = vmap(compute_mapping, in_axes=(None, 0))(self.pred_grid, self.padded_inputs_pred)
 
-		# Compute the hyper-posterior on the grid
-		post_mean_grid, post_cov_grid = hyperpost(inputs=self.padded_inputs_train,
-		                                          outputs=self.padded_outputs_train,
-		                                          mappings=mappings_train_on_grid,
-		                                          all_inputs=full_grid,
-		                                          prior_mean=jnp.array(0.),
-		                                          mean_kernel=self.mean_kernel,
-		                                          task_kernel=self.task_kernel_pred,
-		                                          shared_input=False,  # As we use a grid
-		                                          shared_hp=self.shared_hp)
-
-		# Compute predictions
-		return predict(post_mean_grid, post_cov_grid, self.padded_outputs_pred, mappings_pred_on_grid, full_grid, self.task_kernel_pred)
+		if self.cluster_hp:
+			batched_hyperpost = vmap(hyperpost, in_axes=(None, None, None, None, None, None, self.task_kernel_pred.batch_in_axes, None, None, 0))
+			self.post_means_pred, self.post_covs_pred = batched_hyperpost(
+				self.padded_inputs_train,
+				self.padded_outputs_train,
+				mappings_train_on_grid,
+				self.pred_grid,
+				jnp.array(0.),
+				self.mean_kernel,
+				self.task_kernel_pred.inner_kernel,
+				False,  # As we use a grid
+				self.shared_hp,
+				self.mixture_train)
+			batched_predict = vmap(predict_single_cluster, in_axes=(0, 0, None, None, None, self.task_kernel_pred.batch_in_axes))
+			return batched_predict(self.post_means_pred, self.post_covs_pred, self.padded_outputs_pred, mappings_pred_on_grid, self. pred_grid, self.task_kernel_pred.inner_kernel)
+		else:
+			batched_hyperpost = vmap(hyperpost, in_axes=(None, None, None, None, None, None, None, None, None, 0))
+			self.post_means_pred, self.post_covs_pred = batched_hyperpost(
+				self.padded_inputs_train,
+				self.padded_outputs_train,
+				mappings_train_on_grid,
+				self.pred_grid,
+				jnp.array(0.),
+				self.mean_kernel,
+				self.task_kernel_pred,
+				False,  # As we use a grid
+			    self.shared_hp,
+				self.mixture_train)
+			batched_predict = vmap(predict_single_cluster, in_axes=(0, 0, None, None, None, None))
+			return batched_predict(self.post_means_pred, self.post_covs_pred, self.padded_outputs_pred, mappings_pred_on_grid, self. pred_grid, self.task_kernel_pred)
 
 	def plot_predictions(self):
 		pass

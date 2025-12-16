@@ -35,7 +35,7 @@ def predict_single_task(single_task_kernel, grid, post_cov_grid, post_mean_grid,
 
 
 @jit
-def predict(post_mean_grid, post_cov_grid, padded_outputs_pred, mappings_pred_on_grid, grid, pred_task_kernel: BatchKernel):
+def predict_single_cluster(post_mean_grid, post_cov_grid, padded_outputs_pred, mappings_pred_on_grid, grid, pred_task_kernel: BatchKernel):
 	# In multi-output, we want to flatten the outputs.
 	# The user should provide a specific Kernel to compute a cross-covariance with the right shape too
 	padded_outputs_pred = padded_outputs_pred.reshape(padded_outputs_pred.shape[0], -1)
