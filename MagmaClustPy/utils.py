@@ -5,8 +5,7 @@ import jax
 import jax.numpy as jnp
 import jax.random as jr
 import pandas as pd
-from jax import jit
-from jax import vmap
+from jax import jit, vmap, Array
 
 from MagmaClustPy.linalg import compute_mapping
 
@@ -92,13 +91,13 @@ def pivot_db(df: pd.DataFrame) -> pd.DataFrame:
 
 	# Flatten Outputs
 	df_flat = df_flat.pivot_table(
-		index=['Task_ID'] + [col for col in df_flat.columns if col.startswith("Input_")],
+		index=['Task_ID'] + [col for col in df_flat.columns if str(col).startswith("Input_")],
 		columns='Output_ID',
 		values='Output',
 		aggfunc='first'
 	).reset_index()
 
-	df_flat.columns = [f'Output_{col}' if col not in ['Task_ID', 'Output_ID'] and not col.startswith("Input_") else col
+	df_flat.columns = [f'Output_{col}' if col not in ['Task_ID', 'Output_ID'] and not str(col).startswith("Input_") else col
 	                   for col in df_flat.columns]
 
 	df_flat.columns.name = None
@@ -184,27 +183,35 @@ def check_db(db: pd.DataFrame):
 	pass
 
 
-def split_db(db: pd.DataFrame, train_ratio: float = 0.9, pred_ratio: float = 0.7) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def split_db(db: pd.DataFrame, train_ratio: float = 0.9, pred_ratio: float = 0.7, key: Array=jr.PRNGKey(42)) -> \
+tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
 	"""
 	Splits a database into training, pred and test sets based on given ratios.
 	:param db: pandas DataFrame with columns "Task_ID", "Input", "Input_ID", "Output", "Output_ID"
 	:param train_ratio: float, ratio of IDs to use for training (default 0.9)
 	:param pred_ratio: float, ratio of inputs per pred ID to use for pred (default 0.7)
+	:param key: jax.random.PRNGKey for random selection
 	:return: tuple of pandas DataFrames (db_train, db_pred, db_test)
 	"""
-	# First train_ratio% of IDs are for training, last 100-train_ratio% for testing
-	train_ids = db["Task_ID"].unique()[:int(train_ratio * db["Task_ID"].nunique())]
-	pred_ids = db["Task_ID"].unique()[int(train_ratio * db["Task_ID"].nunique()):]
+	# Random selection of IDs for training and testing
+	unique_ids = db["Task_ID"].unique()
+	n_train = int(train_ratio * len(unique_ids))
+
+	key, subkey = jax.random.split(key)
+	shuffled_indices = jax.random.permutation(subkey, len(unique_ids))
+
+	train_ids = unique_ids[shuffled_indices[:n_train]]
+	pred_ids = unique_ids[shuffled_indices[n_train:]]
 
 	db_train = db[db["Task_ID"].isin(train_ids)]
 	db_pred = db[db["Task_ID"].isin(pred_ids)]
 
 	# First pred_ratio% of inputs of each pred_id is for pred, last 100-pred_ratio% for test
 	db_test = db_pred.groupby("Task_ID", group_keys=False).apply(
-	    lambda x: x.iloc[int(pred_ratio * len(x)):]
+		lambda x: x.iloc[int(pred_ratio * len(x)):]
 	)
 	db_pred = db_pred.groupby("Task_ID", group_keys=False).apply(
-	    lambda x: x.iloc[:int(pred_ratio * len(x))]
+		lambda x: x.iloc[:int(pred_ratio * len(x))]
 	)
 
 	return db_train.reset_index(drop=True), db_pred.reset_index(drop=True), db_test.reset_index(drop=True)

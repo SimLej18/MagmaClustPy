@@ -35,7 +35,7 @@ from MagmaClustPy.hyperpost import hyperpost
 from MagmaClustPy.hp_optimisation import optimise_mean_kernel, optimise_task_kernel
 from MagmaClustPy.utils import preprocess_db
 from MagmaClustPy.linalg import lexicographic_sort, compute_mapping
-from MagmaClustPy.prediction import predict
+from MagmaClustPy.prediction import predict_single_cluster
 
 
 def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int = 25, converg_threshold: float = 1e-3,
@@ -189,8 +189,8 @@ def run_train(dataset: str, shared_input: bool, shared_hp: bool, max_iter: int =
 	                                          shared_hp=shared_hp)
 
 	# Compute predictions
-	pred_mean, pred_cov = predict(post_mean_grid, post_cov_grid, padded_outputs_pred, mappings_pred_on_grid, full_grid,
-	                              task_kernel_pred)
+	pred_mean, pred_cov = predict_single_cluster(post_mean_grid, post_cov_grid, padded_outputs_pred, mappings_pred_on_grid, full_grid,
+	                                             task_kernel_pred)
 
 	prediction_end = time.time()
 	logging.info(f"Prediction completed in {prediction_end - pred_retrain_end:.2f}s")
