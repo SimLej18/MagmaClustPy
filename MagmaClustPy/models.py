@@ -203,7 +203,7 @@ class Magma(BaseModel):
 					prev_mean_llh + prev_task_llh)
 			if conv_ratio < converg_threshold:
 				logging.info(
-					f"Convergence reached after {i + 1} iterations.\tNLLs: {mean_llh:12.4f}, {task_llh:12.4f}\n\tMean kernel: {self.mean_kernel}\n\tTask kernel: {self.task_kernel_train}")
+					f"Convergence reached after {i + 1} iterations.\tNLLs: {mean_llh:12.4f}, {task_llh:12.4f}\n\tMean kernel: {str(self.mean_kernel)}\n\tTask kernel: {str(self.task_kernel_train)}")
 				break
 
 			if i == max_iter - 1:
@@ -219,32 +219,45 @@ class Magma(BaseModel):
 		                                                self.mappings_pred, self.post_mean[None, :], self.post_cov[None, :, :],
 		                                                shared_hp=self.shared_hp, cluster_hp=False, jitter=jitter)
 
-	def predict(self, grid: Array, skip_retrain: bool=False) -> Tuple[Array, Array]:
+	def predict(self, skip_retrain: bool = False) -> Tuple[Array]:
 		if not self.shared_hp and not skip_retrain:
 			self.optimise_pred_kernels()
 
-		# Merge grid and all_inputs and compute new mappings
-		self.grid_pred = lexicographic_sort(jnp.unique(jnp.concatenate([self.all_inputs_train, self.all_inputs_pred, grid]), axis=0))
+		# Merge grid and all_inputs
+		full_grid = lexicographic_sort(
+			jnp.unique(jnp.concatenate([self.all_inputs_train, self.all_inputs_pred, self.grid_pred]), axis=0))
 		# Compute new mappings
-		mappings_train_on_grid = vmap(compute_mapping, in_axes=(None, 0))(self.grid_pred, self.padded_inputs_train)
-		mappings_pred_on_grid = vmap(compute_mapping, in_axes=(None, 0))(self.grid_pred, self.padded_inputs_pred)
+		mappings_train_on_grid = vmap(compute_mapping, in_axes=(None, 0))(full_grid, self.padded_inputs_train)
+		mappings_pred_on_grid = vmap(compute_mapping, in_axes=(None, 0))(full_grid, self.padded_inputs_pred)
+		mappings_grid_on_full_grid = vmap(compute_mapping, in_axes=(None, 0))(full_grid, self.grid_pred)
 
 		# Compute the hyper-posterior on the grid
-		self.post_mean_pred, self.post_cov_pred = hyperpost(inputs=self.padded_inputs_train,
-		                                          outputs=self.padded_outputs_train,
-		                                          mappings=mappings_train_on_grid,
-		                                          all_inputs=self.grid_pred,
-		                                          prior_mean=jnp.array(0.),
-		                                          mean_kernel=self.mean_kernel,
-		                                          task_kernel=self.task_kernel_train,
-		                                          shared_input=False,  # As we use a grid
-		                                          shared_hp=self.shared_hp)
+		post_mean_full_grid, post_cov_full_grid = hyperpost(inputs=self.padded_inputs_train,
+		                                                    outputs=self.padded_outputs_train,
+		                                                    mappings=mappings_train_on_grid,
+		                                                    all_inputs=full_grid,
+		                                                    prior_mean=jnp.array(0.),
+		                                                    mean_kernel=self.mean_kernel,
+		                                                    task_kernel=self.task_kernel_train,
+		                                                    shared_input=False,  # As we use a grid
+		                                                    shared_hp=self.shared_hp)
+
+		self.post_mean_grid = post_mean_full_grid[mappings_grid_on_full_grid]
+		self.post_cov_grid = post_cov_full_grid[jnp.ix_(mappings_grid_on_full_grid, mappings_grid_on_full_grid)]
+
+		post_mean_pred = vmap(lambda m: post_mean_full_grid[m])(mappings_pred_on_grid)
+		post_cov_pred = vmap(lambda m: post_cov_full_grid[jnp.ix_(m, m)])(mappings_pred_on_grid)
+		post_cov_crossed = vmap(lambda m: post_cov_full_grid[jnp.ix_(m, mappings_grid_on_full_grid)])(mappings_pred_on_grid)
 
 		# Compute predictions
 		self.mean_pred, self.cov_pred = predict_single_cluster(
-			self.post_mean_pred, self.post_cov_pred,
-			self.padded_outputs_pred, mappings_pred_on_grid,
-			self.grid_pred, self.task_kernel_pred)
+			self.padded_inputs_pred,
+			self.padded_outputs_pred,
+			self.grid_pred,
+			post_mean_pred, post_cov_pred, post_cov_crossed,
+			self.post_mean_grid, self.post_cov_grid,
+			self.task_kernel_pred)
+
 		return self.mean_pred, self.cov_pred
 
 	def sample(self, nb_samples: int, jitter: Array = jnp.array(1e-4), key: Array = jr.PRNGKey(42)) -> Array:
@@ -271,7 +284,7 @@ class Magma(BaseModel):
 			plot_process(self.grid_pred, self.mean_pred[task_id], self.cov_pred[task_id], fig=fig, ax=ax)
 
 		# Plot mean profile as dashed line with no CI
-		plot_process(self.grid_pred, self.post_mean_pred, jnp.zeros_like(self.post_cov_pred), linestyle="--",
+		plot_process(self.grid_pred, self.post_mean_grid, jnp.zeros_like(self.post_cov_grid), linestyle="--",
 		             ci_alpha=0, curve_alpha=1, label="Mean profile", fig=fig, ax=ax)
 
 		# Plot pred points
@@ -450,8 +463,9 @@ class MagmaClust(BaseModel):
 				self.mixture_train = update_mixture(self.task_kernel_train, self.padded_inputs_train, self.padded_outputs_train, self.mappings_train, self.post_means, self.post_covs, self.shared_hp, self.cluster_hp, jitter=jitter)
 
 			# m-step: update hyperparameters
-			self.mean_kernel, mean_llh = optimise_mean_kernel(self.mean_kernel, self.all_inputs_train, prior_mean_on_grid,
-			                                                  self.post_means, self.post_covs, jitter=jitter)
+			#self.mean_kernel, mean_llh = optimise_mean_kernel(self.mean_kernel, self.all_inputs_train, prior_mean_on_grid,
+			#                                                  self.post_means, self.post_covs, jitter=jitter)
+			mean_llh = 0
 			self.task_kernel_train, task_llh = optimise_task_kernel(self.task_kernel_train, self.padded_inputs_train, self.padded_outputs_train,
 			                                                self.mappings_train, self.post_means, self.post_covs,
 			                                                mixture_coeffs=self.mixture_train, shared_hp=self.shared_hp, cluster_hp=self.cluster_hp, jitter=jitter)
@@ -484,7 +498,7 @@ class MagmaClust(BaseModel):
 		                                                mixture_coeffs=self.mixture_train, shared_hp=self.shared_hp,
 		                                                cluster_hp=self.cluster_hp, jitter=jitter)
 
-	def predict(self, grid: Array, skip_retrain: bool=False, jitter: Array = jnp.array(1e-4)) -> Tuple[Array, Array]:
+	def predict(self, skip_retrain: bool=False, jitter: Array = jnp.array(1e-4)) -> Tuple[Array, Array]:
 		if not self.shared_hp and not skip_retrain:
 			self.optimise_pred_kernels()
 
@@ -495,15 +509,17 @@ class MagmaClust(BaseModel):
 				self.post_means, self.post_covs,
 				self.shared_hp, self.cluster_hp, jitter=jitter)
 
-		# Merge grid and all_inputs and compute new mappings
-		self.grid_pred = lexicographic_sort(jnp.unique(jnp.concatenate([self.all_inputs_train, self.all_inputs_pred, grid]), axis=0))
+		# Merge grid and all_inputs
+		full_grid = lexicographic_sort(
+			jnp.unique(jnp.concatenate([self.all_inputs_train, self.all_inputs_pred, self.grid_pred]), axis=0))
 		# Compute new mappings
-		mappings_train_on_grid = vmap(compute_mapping, in_axes=(None, 0))(self.grid_pred, self.padded_inputs_train)
-		mappings_pred_on_grid = vmap(compute_mapping, in_axes=(None, 0))(self.grid_pred, self.padded_inputs_pred)
+		mappings_train_on_grid = vmap(compute_mapping, in_axes=(None, 0))(full_grid, self.padded_inputs_train)
+		mappings_pred_on_grid = vmap(compute_mapping, in_axes=(None, 0))(full_grid, self.padded_inputs_pred)
+		mappings_grid_on_full_grid = vmap(compute_mapping, in_axes=(None, 0))(full_grid, self.grid_pred)
 
 		if self.cluster_hp:
 			batched_hyperpost = vmap(hyperpost, in_axes=(None, None, None, None, None, None, self.task_kernel_pred.batch_in_axes, None, None, 0))
-			self.post_means_pred, self.post_covs_pred = batched_hyperpost(
+			post_means_full_grid, post_covs_full_grid = batched_hyperpost(
 				self.padded_inputs_train,
 				self.padded_outputs_train,
 				mappings_train_on_grid,
@@ -514,12 +530,9 @@ class MagmaClust(BaseModel):
 				False,  # As we use a grid
 				self.shared_hp,
 				self.mixture_train)
-			batched_predict = vmap(predict_single_cluster, in_axes=(0, 0, None, None, None, self.task_kernel_pred.batch_in_axes))
-			self.means_pred, self.covs_pred = batched_predict(self.post_means_pred, self.post_covs_pred, self.padded_outputs_pred, mappings_pred_on_grid, self.grid_pred, self.task_kernel_pred.inner_kernel)
-
 		else:
 			batched_hyperpost = vmap(hyperpost, in_axes=(None, None, None, None, None, None, None, None, None, 0))
-			self.post_means_pred, self.post_covs_pred = batched_hyperpost(
+			post_means_full_grid, post_covs_full_grid = batched_hyperpost(
 				self.padded_inputs_train,
 				self.padded_outputs_train,
 				mappings_train_on_grid,
@@ -528,22 +541,66 @@ class MagmaClust(BaseModel):
 				self.mean_kernel,
 				self.task_kernel_pred,
 				False,  # As we use a grid
-			    self.shared_hp,
+				self.shared_hp,
 				self.mixture_train)
-			batched_predict = vmap(predict_single_cluster, in_axes=(0, 0, None, None, None, None))
-			self.means_pred, self.covs_pred =  batched_predict(self.post_means_pred, self.post_covs_pred, self.padded_outputs_pred, mappings_pred_on_grid, self.grid_pred, self.task_kernel_pred)
+
+		self.post_mean_grid = post_means_full_grid[:, mappings_grid_on_full_grid]
+		self.post_cov_grid = vmap(lambda p: p[jnp.ix_(mappings_grid_on_full_grid, mappings_grid_on_full_grid)])(post_covs_full_grid)
+
+		post_mean_pred = vmap(lambda m: post_means_full_grid[:, m])(mappings_pred_on_grid)
+		post_cov_pred = vmap(lambda m: vmap(lambda p: p[jnp.ix_(m, m)])(post_covs_full_grid))(mappings_pred_on_grid)
+		post_cov_crossed = vmap(lambda m: vmap(lambda p: p[jnp.ix_(m, mappings_grid_on_full_grid)])(post_covs_full_grid))(
+			mappings_pred_on_grid)
+
+
+		if self.cluster_hp:
+			batched_predict = vmap(predict_single_cluster,
+			                       in_axes=(None, None, None, 0, 0, 0, 0, 0, self.task_kernel_pred.batch_in_axes))
+			# Compute predictions
+			self.means_pred, self.covs_pred = batched_predict(
+				self.padded_inputs_pred,
+				self.padded_outputs_pred,
+				self.grid_pred,
+				post_mean_pred, post_cov_pred, post_cov_crossed,
+				self.post_mean_grid, self.post_cov_grid,
+				self.task_kernel_pred.inner_kernel)
+
+			#batched_predict = vmap(predict_single_cluster, in_axes=(0, 0, None, None, None, self.task_kernel_pred.batch_in_axes))
+			#self.means_pred, self.covs_pred = batched_predict(self.post_means_pred, self.post_covs_pred, self.padded_outputs_pred, mappings_pred_on_grid, self.grid_pred, self.task_kernel_pred.inner_kernel)
+		else:
+			batched_predict = vmap(predict_single_cluster,
+			                       in_axes=(None, None, None, 0, 0, 0, 0, 0, None))
+			# Compute predictions
+			self.means_pred, self.covs_pred = batched_predict(
+				self.padded_inputs_pred,
+				self.padded_outputs_pred,
+				self.grid_pred,
+				post_mean_pred, post_cov_pred, post_cov_crossed,
+				self.post_mean_grid, self.post_cov_grid,
+				self.task_kernel_pred)
+
+			#batched_predict = vmap(predict_single_cluster, in_axes=(0, 0, None, None, None, None))
+			#self.means_pred, self.covs_pred =  batched_predict(self.post_means_pred, self.post_covs_pred, self.padded_outputs_pred, mappings_pred_on_grid, self.grid_pred, self.task_kernel_pred)
 
 		return self.means_pred, self.covs_pred
 
 	def sample(self, nb_samples: int, jitter: Array = jnp.array(1e-4), key: Array = jr.PRNGKey(42)) -> Array:
-		# TODO
-		return jr.multivariate_normal(key, self.means_pred[0], self.covs_pred[0] + (jitter * jnp.eye(len(self.covs_pred[0]))),
-		                              shape=(nb_samples,))
+		def sample_from_cluster(key, cluster_id):
+			return jr.multivariate_normal(key, self.means_pred[cluster_id],
+			                              self.covs_pred[cluster_id] + (jitter * jnp.eye(len(self.covs_pred[cluster_id]))),
+			                              shape=(nb_samples,))
+
+		cluster_ids = jnp.round(jnp.linspace(0, self.mixture_pred.shape[0] - 1, nb_samples)).astype(jnp.int32)
+		subkeys = jr.split(key, nb_samples)
+
+		return vmap(sample_from_cluster)(subkeys, cluster_ids)
 
 	def plot_predictions(self, plot_as: Literal["samples", "process"] = "samples", task_id=0,
 	                                assume_mixture: Optional[list[float]] = None, colors="mixture",
 	                                nb_samples: int = 100, include_train_points=True, key: Array = jr.PRNGKey(42),
 	                                fig=None, ax=None):
+
+
 		if colors is None:
 			colors = [plt.get_cmap("tab10")(0) for _ in range(self.k)]  # all same color
 		elif colors == "mixture":
@@ -571,6 +628,7 @@ class MagmaClust(BaseModel):
 					                      key=subkey)  # FIXME: adapt when MagmaClust.sample will work
 					plot_samples(self.grid_pred, samples[task_id], alpha=0.3, color=colors[cluster_id], fig=fig, ax=ax)
 		else:
+			raise NotImplementedError("Can only plot samples for predictions, as a mixture of GPs is not a GP")
 			task_mixture = self.mixture_pred[:, task_id].tolist() if assume_mixture is None else assume_mixture
 
 			for cluster_id in range(self.k):
