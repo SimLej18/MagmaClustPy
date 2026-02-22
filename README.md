@@ -1,33 +1,29 @@
 # MagmaClustPy
 ---
 
-MagmaClustPy is a Python translation of the [MagmaClustR](https://github.com/ArthurLeroy/MagmaClustR) library.
+MagmaClustPy is a probabilistic learning framework based on MagmaClust, a multi-task Gaussian Process framework.
 
-For now, the translation is a work in progress and the library is not yet functional. The goal is to provide a Python 
-version of the MagmaClustR library, with the same functionalities and results. The API however might be different.
+An original implementation of MagmaClust is available as [a R package](https://github.com/ArthurLeroy/MagmaClustR).
+
+This implementation has many limitations:
+* it doesn't do parallel computations and doesn't run on GPU
+* it doesn't support non-gaussian likelihoods (for classification for example)
+* it only models single-output GPs
+* it trains on all the data at once, scaling pretty badly on bigger datasets
+
+This Python package will aleviate these limitations with multiple design choices:
+* We use Jax along with mapping/padding methods to allow fast and parallel computations on CPU/GPU/TPU
+* We develop a multi-output algorithm based on Process Convolution for joint optimisation of correlated outputs
+* We use Laplace-Matching to adapt to non-gaussian data and problems
+* We support data points coming with known, heteroskedastic uncertainty estimates
+* We learn data in batches to reduce time of training
+* We explore sparse covariance matrix computations to speed up inference
 
 ---
 
 ## Installation
 
-TODO
-
-To run the code in this repository, you have to setup a Python environment. You can either load the conda environment 
-from env/`environment.yml` or create a new one and install the libraries using the `requirements.txt` file.
-
-```bash
-conda env create -f env/environment.yml
-conda activate MagmaClustPy
-```
-or
-
-```bash
-python -m venv MagmaClustPy
-source MagmaClustPy/bin/activate
-pip install -r env/requirements.txt
-```
-
----
+--- TODO ---
 
 ## Main differences with the original MagmaClustR library
 
@@ -52,8 +48,8 @@ implicit rounding of numbers is performed by the library itself.
 - [x] Cluster mixture init and update
 - [x] Cluster hyperpost and HP optim
 - [ ] Model classes
-- [ ] Cluster prediction
-- [ ] Plot utilities
+- [x] Cluster prediction
+- [x] Plot utilities
 - [ ] Initializers
 - [ ] Prior means modules
 - [ ] Likelihood modules
@@ -75,3 +71,9 @@ implicit rounding of numbers is performed by the library itself.
 - [ ] Continued development
 
 ---
+
+## Help, feedback, contributions
+
+Any feedback, issue or contribution is obviously mor than welcome! 
+Don't hesitate to open an issue/discussion on GitHub, or get in touch with [Arthur Leroy](https://arthur-leroy.netlify.app/) if you have any question.
+
