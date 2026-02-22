@@ -5,3 +5,7 @@ from . import linalg
 from . import utils
 from . import plot
 from . import prediction
+from . import initialisation
+from . import mixture
+from . import means
+from . import models

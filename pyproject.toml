@@ -1,0 +1,142 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "magma-py-minimal"
+version = "v0.1.0-alpha"
+description = "A Python implementation of the MagmaClust algorithm, coded in Jax."
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "S. Lejoly", email = "simon.lejoly@unamur.be"}
+]
+maintainers = [
+    {name = "S. Lejoly", email = "simon.lejoly@unamur.be"}
+]
+keywords = [
+    "gaussian-processes",
+    "kernels",
+    "jax",
+    "machine-learning",
+    "covariance-functions",
+    "bayesian-optimization"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+dependencies = [
+    "jax>=0.6.2",
+    "jaxlib>=0.6.2",
+    "equinox>=0.13.2",
+    "chex~=0.1.89",
+    "optax~=0.2.5",
+    "pandas~=2.3.0",
+    "numpy~=2.3.1",
+    "matplotlib~=3.10.0",
+    "kernax-ml>=0.4.4a0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "allure-pytest>=2.15",
+    "pytest-benchmark>=5.2",
+    "gpjax>=0.13",
+    "gpytorch>=1.15",
+    "scikit-learn>=1.8",
+    "ruff>=0.1.0",
+    "mypy>=0.990",
+]
+docs = [
+    "sphinx>=5.0",
+    "sphinx-rtd-theme>=1.0",
+    "nbsphinx>=0.8",
+]
+benchmarks = [
+    "pandas>=1.5.0",
+    "matplotlib>=3.5.0",
+    "jupyter>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/SimLej18/MagmaClustPy"
+Repository = "https://github.com/SimLej18/MagmaClustPy"
+# Documentation = "https://kernax-ml.readthedocs.io"
+"Bug Tracker" = "https://github.com/SimLej18/MagmaClustPy/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["MagmaClustPy*"]
+
+[tool.setuptools.package-data]
+MagmaClustPy = ["py.typed"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+exclude = [
+    ".git",
+    ".venv",
+    ".eggs",
+    ".tox",
+    "build",
+    "dist",
+    "__pycache__",
+]
+
+[tool.ruff.format]
+indent-style = "tab"
+quote-style = "double"
+line-ending = "auto"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "W191",  # indentation contains tabs (we want tabs!)
+    "E101",  # indentation contains mixed spaces and tabs
+]
+
+[tool.ruff.lint.isort]
+force-single-line = false
+force-sort-within-sections = false
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "benchmark_*.py", "compare_*.py"]
+python_classes = ["Test*", "Benchmark*", "Compare*"]
+python_functions = ["test_*", "benchmark_*", "compare_*"]
+addopts = [
+    "--verbose",
+    "--cov=kernax",
+    "--cov-report=term-missing",
+    "--cov-report=html:tests/out/htmlcov",
+]

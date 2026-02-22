@@ -19,39 +19,56 @@ This Python package will aleviate these limitations with multiple design choices
 * We learn data in batches to reduce time of training
 * We explore sparse covariance matrix computations to speed up inference
 
-## Status of the implementation
-
-This package is currently **a work in progress** and is not yet functional. 
-Currently, it's used to test our new design choices.
-The training and prediction pipeline of a Magma model is mostly functional however. 
-Benchmarks demonstrate an impressive speed-up over the R version on datasets containing 600 tasks, each with 450 points on a 2000 points grid.
-
-Most of the features will be implemented in the following months, likely in this order:
-* clustering
-* heteroskedasticity
-* multi-output
-* non-gaussian likelihood
-* batch learning
-* sparse precision matrices approximations
-
 ---
 
 ## Installation
 
-To run the code in this repository, you have to setup a Python environment. You can either load the conda environment 
-from env/`environment.yml` or create a new one and install the libraries using the `requirements.txt` file.
+--- TODO ---
 
-```bash
-conda env create -f env/environment.yml
-conda activate MagmaClustPy
-```
-or
+## Main differences with the original MagmaClustR library
 
-```bash
-python -m venv MagmaClustPy
-source MagmaClustPy/bin/activate
-pip install -r env/requirements.txt
-```
+* This is a module written in Python instead of package coded in R (obviously)
+* The package runs on JAX and can therefore leverage various backends (CPU, GPU, TPU). 
+* We use **custom classes for kernels** rather than string identifiers. These kernels can be composed (à la GPytorch). 
+You can find them in `kernels.py`. Therefore, *signatures of functions that use kernels might be different*. A common 
+example of this is the initialisation of kernel HPs. Rather than sending the kernel class and HPs as separate arguments, 
+**the user can initialise the kernel with the wanted HP and then send it as a single argument**.
+* We use **matplotlib** for plotting instead of **ggplot2**
+* Files, class names, functions names, variables and parameters might have different names to be clearer or respect
+Python conventions.
+* This library sticks with the default precision of the linear algebra backend (or the one specified by the user). No 
+implicit rounding of numbers is performed by the library itself.
+* This library uses `logging` instead of `cat`. You can configure the logging level like this: 
+`logging.basicConfig(level=logging.INFO)`.
+
+---
+
+## Development roadmap
+
+- [x] Cluster mixture init and update
+- [x] Cluster hyperpost and HP optim
+- [ ] Model classes
+- [x] Cluster prediction
+- [x] Plot utilities
+- [ ] Initializers
+- [ ] Prior means modules
+- [ ] Likelihood modules
+- [ ] Minimal documentation (guides and API)
+- [ ] PyPI package and deployment setup
+
+🚀 Alpha release !
+
+- [ ] Bug test - issue management
+- [ ] Unit test
+- [ ] Multi-output GPs
+- [ ] Complete documentation
+- [ ] Contribution guides
+- [ ] Dev pipeline tools for testing/coverage/...
+
+🚀 1.0.0 release
+
+- [ ] Laplace-Matching likelihoods
+- [ ] Continued development
 
 ---
 
@@ -59,3 +76,4 @@ pip install -r env/requirements.txt
 
 Any feedback, issue or contribution is obviously mor than welcome! 
 Don't hesitate to open an issue/discussion on GitHub, or get in touch with [Arthur Leroy](https://arthur-leroy.netlify.app/) if you have any question.
+
