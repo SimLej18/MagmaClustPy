@@ -261,6 +261,17 @@ class Magma(BaseModel):
 		return self.mean_pred, self.cov_pred
 
 	def sample(self, nb_samples: int, jitter: Array = jnp.array(1e-4), key: Array = jr.PRNGKey(42)) -> Array:
+		"""
+		Return nb_samples random samples for each task in padded_inputs_pred and padded_outputs_pred.
+
+		:param nb_samples: number of samples to return
+		:param jitter: term for numerical stability
+		:param key: PRNG key
+		:return: array of shape (N, nb_samples, G), with:
+			* N: the number of prediction tasks (first dimension of self.padded_inputs_pred)
+			* G: the number of points in the prediction grid (last dimension of self.grid_pred)
+		"""
+
 		eye = jitter * jnp.eye(len(self.cov_pred[0]))
 		sample_task = lambda mean, cov: jr.multivariate_normal(key, mean, cov+eye,
 		                              shape=(nb_samples,))
@@ -312,7 +323,8 @@ class Magma(BaseModel):
 		return fig, ax
 
 	def generate_grid(self, grid_size, margin=5):
-		return jnp.linspace(jnp.min(self.all_inputs_train - margin, axis=0), jnp.max(self.all_inputs_train + margin, axis=0), grid_size)
+		self.grid_pred = jnp.linspace(jnp.min(self.all_inputs_train - margin, axis=0), jnp.max(self.all_inputs_train + margin, axis=0), grid_size)
+		return self.grid_pred
 
 
 class MagmaClust(BaseModel):
@@ -463,8 +475,8 @@ class MagmaClust(BaseModel):
 				self.mixture_train = update_mixture(self.task_kernel_train, self.padded_inputs_train, self.padded_outputs_train, self.mappings_train, self.post_means, self.post_covs, self.shared_hp, self.cluster_hp, jitter=jitter)
 
 			# m-step: update hyperparameters
-			#self.mean_kernel, mean_llh = optimise_mean_kernel(self.mean_kernel, self.all_inputs_train, prior_mean_on_grid,
-			#                                                  self.post_means, self.post_covs, jitter=jitter)
+			self.mean_kernel, mean_llh = optimise_mean_kernel(self.mean_kernel, self.all_inputs_train, prior_mean_on_grid,
+			                                                  self.post_means, self.post_covs, jitter=jitter)
 			mean_llh = 0
 			self.task_kernel_train, task_llh = optimise_task_kernel(self.task_kernel_train, self.padded_inputs_train, self.padded_outputs_train,
 			                                                self.mappings_train, self.post_means, self.post_covs,
@@ -561,12 +573,10 @@ class MagmaClust(BaseModel):
 				self.padded_inputs_pred,
 				self.padded_outputs_pred,
 				self.grid_pred,
-				post_mean_pred, post_cov_pred, post_cov_crossed,
+				jnp.swapaxes(post_mean_pred, 0, 1), jnp.swapaxes(post_cov_pred, 0, 1), jnp.swapaxes(post_cov_crossed, 0, 1),
 				self.post_mean_grid, self.post_cov_grid,
 				self.task_kernel_pred.inner_kernel)
 
-			#batched_predict = vmap(predict_single_cluster, in_axes=(0, 0, None, None, None, self.task_kernel_pred.batch_in_axes))
-			#self.means_pred, self.covs_pred = batched_predict(self.post_means_pred, self.post_covs_pred, self.padded_outputs_pred, mappings_pred_on_grid, self.grid_pred, self.task_kernel_pred.inner_kernel)
 		else:
 			batched_predict = vmap(predict_single_cluster,
 			                       in_axes=(None, None, None, 0, 0, 0, 0, 0, None))
@@ -575,38 +585,51 @@ class MagmaClust(BaseModel):
 				self.padded_inputs_pred,
 				self.padded_outputs_pred,
 				self.grid_pred,
-				post_mean_pred, post_cov_pred, post_cov_crossed,
+				jnp.swapaxes(post_mean_pred, 0, 1), jnp.swapaxes(post_cov_pred, 0, 1), jnp.swapaxes(post_cov_crossed, 0, 1),
 				self.post_mean_grid, self.post_cov_grid,
 				self.task_kernel_pred)
 
-			#batched_predict = vmap(predict_single_cluster, in_axes=(0, 0, None, None, None, None))
-			#self.means_pred, self.covs_pred =  batched_predict(self.post_means_pred, self.post_covs_pred, self.padded_outputs_pred, mappings_pred_on_grid, self.grid_pred, self.task_kernel_pred)
-
 		return self.means_pred, self.covs_pred
 
-	def sample(self, nb_samples: int, jitter: Array = jnp.array(1e-4), key: Array = jr.PRNGKey(42)) -> Array:
-		def sample_from_cluster(key, cluster_id):
-			return jr.multivariate_normal(key, self.means_pred[cluster_id],
-			                              self.covs_pred[cluster_id] + (jitter * jnp.eye(len(self.covs_pred[cluster_id]))),
-			                              shape=(nb_samples,))
+	def sample(self, nb_samples: int, jitter: Array = jnp.array(1e-3), key: Array = jr.PRNGKey(42)) -> Array:
+		"""
+		Return nb_samples random samples for each task in padded_inputs_pred and padded_outputs_pred.
 
-		cluster_ids = jnp.round(jnp.linspace(0, self.mixture_pred.shape[0] - 1, nb_samples)).astype(jnp.int32)
-		subkeys = jr.split(key, nb_samples)
+		These samples are drown from either one of the mean_processes, with probability corresponding to the mixture
+		of each prediction task.
 
-		return vmap(sample_from_cluster)(subkeys, cluster_ids)
+		:param nb_samples: number of samples to return
+		:param jitter: term for numerical stability
+		:param key: PRNG key
+		:return: array of shape (N, nb_samples, G), with:
+			* N: the number of prediction tasks (first dimension of self.padded_inputs_pred)
+			* G: the number of points in the prediction grid (last dimension of self.grid_pred)
+		"""
+
+		def sample_from_cluster(key, mean_pred, cov_pred, cluster_ids):
+			subkeys = jr.split(key, len(cluster_ids))
+			return vmap(lambda c, k: jr.multivariate_normal(k, mean_pred[c],
+			                                                cov_pred[c] + (jitter * jnp.eye(len(cov_pred[c])))))(
+				cluster_ids, subkeys)
+
+		sample_cluster_ids = vmap(lambda t: jnp.searchsorted(t, (jnp.arange(nb_samples) + 0.5) / nb_samples))(
+			jnp.cumsum(self.mixture_pred.T, axis=1))  # shape (Nb_Tasks, Nb_Samples)
+
+		subkeys = jr.split(key, self.mixture_pred.shape[1])
+
+		return vmap(sample_from_cluster, in_axes=(0, 0, 0, 0))(subkeys, jnp.swapaxes(self.means_pred, 0, 1),
+		                                                       jnp.swapaxes(self.covs_pred, 0, 1), sample_cluster_ids)
 
 	def plot_predictions(self, plot_as: Literal["samples", "process"] = "samples", task_id=0,
-	                                assume_mixture: Optional[list[float]] = None, colors="mixture",
-	                                nb_samples: int = 100, include_train_points=True, key: Array = jr.PRNGKey(42),
-	                                fig=None, ax=None):
-
+	                                colors="mixture", nb_samples: int = 100, include_train_points=True,
+	                                key: Array = jr.PRNGKey(42), fig=None, ax=None):
 
 		if colors is None:
-			colors = [plt.get_cmap("tab10")(0) for _ in range(self.k)]  # all same color
+			colors = [plt.get_cmap("tab10")(0) for _ in range(self.k)]
 		elif colors == "mixture":
-			colors = [plt.get_cmap("tab10")(i) for i in range(self.k)]  # different color per cluster
+			colors = [plt.get_cmap("tab10")(i) for i in range(self.k)]
 		else:
-			colors = [colors] * self.k  # all same provided color
+			colors = [colors] * self.k
 
 		if fig is None and ax is None:
 			fig, ax = plt.subplots(figsize=(12, 8))
@@ -616,28 +639,15 @@ class MagmaClust(BaseModel):
 
 		# Plot prediction
 		if plot_as == "samples":
-			task_mixture = jnp.round(self.mixture_pred[:, task_id] * nb_samples).astype(int).tolist()
-			if assume_mixture is not None:
-				task_mixture = jnp.array(assume_mixture)
-
-			for cluster_id in range(self.k):
-				nb_cluster_samples = task_mixture[cluster_id]
-				if nb_cluster_samples > 0:
-					key, subkey = jr.split(key)
-					samples = self.sample(nb_cluster_samples,
-					                      key=subkey)  # FIXME: adapt when MagmaClust.sample will work
-					plot_samples(self.grid_pred, samples[task_id], alpha=0.3, color=colors[cluster_id], fig=fig, ax=ax)
+			samples = self.sample(nb_samples, key=key)  # (N, nb_samples, G)
+			plot_samples(self.grid_pred, samples[task_id], alpha=0.3, fig=fig, ax=ax)
 		else:
-			raise NotImplementedError("Can only plot samples for predictions, as a mixture of GPs is not a GP")
-			task_mixture = self.mixture_pred[:, task_id].tolist() if assume_mixture is None else assume_mixture
-
-			for cluster_id in range(self.k):
-				weight = task_mixture[cluster_id]
-				if weight > 0:
-					# Scale covariance by the mixture weight
-					plot_process(self.grid_pred, self.means_pred[cluster_id, task_id],
-					             self.covs_pred[cluster_id, task_id], ci_alpha=0.1 * weight, curve_alpha=weight,
-					             color=colors[cluster_id], fig=fig, ax=ax)
+			# Plot K GPs, one per cluster, with alpha proportional to the cluster membership probability
+			for k in range(self.k):
+				weight = float(self.mixture_pred[k, task_id])
+				if weight > 1e-6:
+					plot_process(self.grid_pred, self.means_pred[k, task_id], self.covs_pred[k, task_id],
+					             ci_alpha=0.3 * weight, curve_alpha=weight, color=colors[k], fig=fig, ax=ax)
 
 		# Plot pred points
 		pred_color = plt.get_cmap("tab10")(0)
@@ -693,4 +703,5 @@ class MagmaClust(BaseModel):
 		return fig, ax
 
 	def generate_grid(self, grid_size, margin=5):
-		return jnp.linspace(jnp.min(self.all_inputs_train - margin, axis=0), jnp.max(self.all_inputs_train + margin, axis=0), grid_size)
+		self.grid_pred = jnp.linspace(jnp.min(self.all_inputs_train - margin, axis=0), jnp.max(self.all_inputs_train + margin, axis=0), grid_size)
+		return self.grid_pred

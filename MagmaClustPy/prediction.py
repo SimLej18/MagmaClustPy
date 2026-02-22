@@ -15,7 +15,8 @@ def predict_single_task(padded_inputs_pred, padded_outputs_pred, grid,
 	post_mean_pred = jnp.where(~jnp.isnan(padded_outputs_pred), post_mean_pred, 0.)
 
 	gamma_pred = post_cov_pred + task_kernel(padded_inputs_pred)
-	gamma_grid = post_cov_grid + task_kernel.left_kernel(grid)
+	gamma_grid = post_cov_grid + task_kernel.left_kernel(grid)  # No noise before
+	#gamma_grid = post_cov_grid + task_kernel(grid)
 	gamma_crossed = post_cov_crossed + task_kernel.left_kernel(padded_inputs_pred, grid)
 
 	padding_mask = ~jnp.isnan(padded_outputs_pred)[:, None] & ~jnp.isnan(padded_outputs_pred)[None, :]
@@ -28,6 +29,8 @@ def predict_single_task(padded_inputs_pred, padded_outputs_pred, grid,
 
 	pred_mean = post_mean_grid + (z.T @ y)
 	pred_cov = gamma_grid - (z.T @ z)
+
+	pred_cov = pred_cov #+ task_kernel.right_kernel(grid)  # Add noise after
 
 	return pred_mean, pred_cov
 
