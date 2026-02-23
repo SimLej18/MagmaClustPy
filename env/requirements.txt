@@ -7,3 +7,4 @@ setuptools~=78.1.1
 matplotlib~=3.10.0
 kernax-ml>=0.4.4a0
 equinox~=0.13.2
+scikit_learn>=1.8.0

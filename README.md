@@ -23,7 +23,11 @@ This Python package will aleviate these limitations with multiple design choices
 
 ## Installation
 
---- TODO ---
+You can install a minimal version of the library using:
+
+```bash
+pip install magma-py-minimal
+```
 
 ## Main differences with the original MagmaClustR library
 
