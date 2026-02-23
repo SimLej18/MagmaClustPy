@@ -169,7 +169,7 @@ class Magma(BaseModel):
 			check_db(db)
 		self.padded_inputs_test, self.padded_outputs_test, self.mappings_test, all_inputs_test = preprocess_db(db)
 
-	def fit(self, max_iter: int = 25, converg_threshold: float = 1e-3, jitter: Array = jnp.array(1e-4)):
+	def fit(self, max_iter: int = 25, converg_threshold: float = 1e-3, jitter: Array = jnp.array(1e-4), freeze_mean_hps: bool = False, freeze_task_hps: bool = False):
 		# Monitoring variables
 		prev_mean_llh = jnp.inf
 		prev_task_llh = jnp.inf
@@ -186,11 +186,15 @@ class Magma(BaseModel):
 			                                shared_input=self.shared_inputs_train, shared_hp=self.shared_hp)
 
 			# m-step: update hyperparameters
-			self.mean_kernel, mean_llh = optimise_mean_kernel(self.mean_kernel, self.all_inputs_train, prior_mean_on_grid,
-			                                             self.post_mean, self.post_cov, jitter=jitter)
-			self.task_kernel_train, task_llh = optimise_task_kernel(self.task_kernel_train, self.padded_inputs_train, self.padded_outputs_train,
-			                                                        self.mappings_train, self.post_mean[None, :], self.post_cov[None, :, :],
-			                                                        shared_hp=self.shared_hp, cluster_hp=False,jitter=jitter)
+			mean_llh = 0
+			if not freeze_mean_hps:
+				self.mean_kernel, mean_llh = optimise_mean_kernel(self.mean_kernel, self.all_inputs_train, prior_mean_on_grid,
+				                                             self.post_mean, self.post_cov, jitter=jitter)
+			task_llh = 0
+			if not freeze_task_hps:
+				self.task_kernel_train, task_llh = optimise_task_kernel(self.task_kernel_train, self.padded_inputs_train, self.padded_outputs_train,
+				                                                        self.mappings_train, self.post_mean[None, :], self.post_cov[None, :, :],
+				                                                        shared_hp=self.shared_hp, cluster_hp=False,jitter=jitter)
 
 			# Check for NaN values and stop early
 			if jnp.isnan(mean_llh) or jnp.isnan(task_llh):
@@ -431,7 +435,7 @@ class MagmaClust(BaseModel):
 			check_db(db)
 		self.padded_inputs_test, self.padded_outputs_test, self.mappings_test, all_inputs_test = preprocess_db(db)
 
-	def fit(self, max_iter: int = 25, converg_threshold: float = 1e-3, jitter: Array = jnp.array(1e-4)):
+	def fit(self, max_iter: int = 25, converg_threshold: float = 1e-3, jitter: Array = jnp.array(1e-4), freeze_mean_hps: bool = False, freeze_task_hps: bool = False):
 		# Monitoring variables
 		prev_mean_llh = jnp.inf
 		prev_task_llh = jnp.inf
@@ -475,12 +479,16 @@ class MagmaClust(BaseModel):
 				self.mixture_train = update_mixture(self.task_kernel_train, self.padded_inputs_train, self.padded_outputs_train, self.mappings_train, self.post_means, self.post_covs, self.shared_hp, self.cluster_hp, jitter=jitter)
 
 			# m-step: update hyperparameters
-			self.mean_kernel, mean_llh = optimise_mean_kernel(self.mean_kernel, self.all_inputs_train, prior_mean_on_grid,
-			                                                  self.post_means, self.post_covs, jitter=jitter)
 			mean_llh = 0
-			self.task_kernel_train, task_llh = optimise_task_kernel(self.task_kernel_train, self.padded_inputs_train, self.padded_outputs_train,
-			                                                self.mappings_train, self.post_means, self.post_covs,
-			                                                mixture_coeffs=self.mixture_train, shared_hp=self.shared_hp, cluster_hp=self.cluster_hp, jitter=jitter)
+			if not freeze_mean_hps:
+				self.mean_kernel, mean_llh = optimise_mean_kernel(self.mean_kernel, self.all_inputs_train, prior_mean_on_grid,
+				                                                  self.post_means, self.post_covs, jitter=jitter)
+
+			task_llh = 0
+			if not freeze_task_hps:
+				self.task_kernel_train, task_llh = optimise_task_kernel(self.task_kernel_train, self.padded_inputs_train, self.padded_outputs_train,
+				                                                self.mappings_train, self.post_means, self.post_covs,
+				                                                mixture_coeffs=self.mixture_train, shared_hp=self.shared_hp, cluster_hp=self.cluster_hp, jitter=jitter)
 
 			# Check for NaN values and stop early
 			if jnp.isnan(mean_llh) or jnp.isnan(task_llh):
