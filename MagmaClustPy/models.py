@@ -8,7 +8,7 @@ from jax import vmap, Array
 from jax import numpy as jnp
 import jax.random as jr
 import pandas as pd
-from kernax import AbstractKernel, BatchKernel
+from kernax import AbstractKernel, BatchModule
 import matplotlib.pyplot as plt
 
 # Local
@@ -143,12 +143,12 @@ class Magma(BaseModel):
 		self.shared_inputs_train = self.padded_inputs_train[0].shape == self.all_inputs_train.shape and jnp.all(self.padded_inputs_train[0] == self.all_inputs_train).item()
 
 		# Batch kernels, if they are not already batched
-		if not isinstance(self.task_kernel_train, BatchKernel):
+		if not isinstance(self.task_kernel_train, BatchModule):
 			if self.shared_hp:
-				self.task_kernel_train = BatchKernel(self.task_kernel_train,
+				self.task_kernel_train = BatchModule(self.task_kernel_train,
 				                          batch_size=self.padded_inputs_train.shape[0], batch_in_axes=None, batch_over_inputs=True)
 			else:
-				self.task_kernel_train = BatchKernel(self.task_kernel_train,
+				self.task_kernel_train = BatchModule(self.task_kernel_train,
 				                          batch_size=self.padded_inputs_train.shape[0], batch_in_axes=0, batch_over_inputs=True)
 
 	def load_pred_data(self, db: pd.DataFrame, skip_check=True):
@@ -156,12 +156,12 @@ class Magma(BaseModel):
 			check_db(db)
 		self.padded_inputs_pred, self.padded_outputs_pred, self.mappings_pred, self.all_inputs_pred = preprocess_db(db)
 
-		if not isinstance(self.task_kernel_pred, BatchKernel):
+		if not isinstance(self.task_kernel_pred, BatchModule):
 			if self.shared_hp:
-				self.task_kernel_pred = BatchKernel(self.task_kernel_pred,
+				self.task_kernel_pred = BatchModule(self.task_kernel_pred,
 				                          batch_size=self.padded_inputs_pred.shape[0], batch_in_axes=None, batch_over_inputs=True)
 			else:
-				self.task_kernel_pred = BatchKernel(self.task_kernel_pred,
+				self.task_kernel_pred = BatchModule(self.task_kernel_pred,
 				                          batch_size=self.padded_inputs_pred.shape[0], batch_in_axes=0, batch_over_inputs=True)
 
 	def load_test_data(self, db: pd.DataFrame, skip_check=True):
@@ -382,22 +382,22 @@ class MagmaClust(BaseModel):
 	def batch_kernel(self, kernel, nb_tasks, nb_clusters):
 		if self.shared_hp and not self.cluster_hp:
 			# Batch along tasks
-			kernel = BatchKernel(kernel, batch_size=nb_tasks, batch_in_axes=None, batch_over_inputs=True)
+			kernel = BatchModule(kernel, batch_size=nb_tasks, batch_in_axes=None, batch_over_inputs=True)
 		elif self.shared_hp and self.cluster_hp:
 			# Batch along tasks
-			kernel = BatchKernel(kernel, batch_size=nb_tasks, batch_in_axes=None, batch_over_inputs=True)
+			kernel = BatchModule(kernel, batch_size=nb_tasks, batch_in_axes=None, batch_over_inputs=True)
 
 			# Batch along clusters
-			kernel = BatchKernel(kernel, batch_size=nb_clusters, batch_in_axes=0, batch_over_inputs=False)
+			kernel = BatchModule(kernel, batch_size=nb_clusters, batch_in_axes=0, batch_over_inputs=False)
 		elif not self.shared_hp and not self.cluster_hp:
 			# Batch along tasks
-			kernel = BatchKernel(kernel, batch_size=nb_tasks, batch_in_axes=0, batch_over_inputs=True)
+			kernel = BatchModule(kernel, batch_size=nb_tasks, batch_in_axes=0, batch_over_inputs=True)
 		else:  # not shared_hp and cluster_hp
 			# Batch along tasks
-			kernel = BatchKernel(kernel, batch_size=nb_tasks, batch_in_axes=0, batch_over_inputs=True)
+			kernel = BatchModule(kernel, batch_size=nb_tasks, batch_in_axes=0, batch_over_inputs=True)
 
 			# Batch along clusters
-			kernel = BatchKernel(kernel, batch_size=nb_clusters, batch_in_axes=0, batch_over_inputs=False)
+			kernel = BatchModule(kernel, batch_size=nb_clusters, batch_in_axes=0, batch_over_inputs=False)
 
 		return kernel
 
@@ -409,7 +409,7 @@ class MagmaClust(BaseModel):
 		self.shared_inputs_train = self.padded_inputs_train[0].shape == self.all_inputs_train.shape and jnp.all(self.padded_inputs_train[0] == self.all_inputs_train).item()
 
 		# Batch kernels, if they are not already batched
-		if not isinstance(self.task_kernel_train, BatchKernel):
+		if not isinstance(self.task_kernel_train, BatchModule):
 			self.task_kernel_train = self.batch_kernel(self.task_kernel_train, self.padded_inputs_train.shape[0], self.k)
 
 		if self.k == 1:
@@ -423,7 +423,7 @@ class MagmaClust(BaseModel):
 			check_db(db)
 		self.padded_inputs_pred, self.padded_outputs_pred, self.mappings_pred, self.all_inputs_pred = preprocess_db(db)
 
-		if not isinstance(self.task_kernel_pred, BatchKernel):
+		if not isinstance(self.task_kernel_pred, BatchModule):
 			self.task_kernel_pred = self.batch_kernel(self.task_kernel_pred, self.padded_inputs_pred.shape[0], self.k)
 
 		if self.k == 1:
@@ -458,7 +458,7 @@ class MagmaClust(BaseModel):
 				                                                    self.mappings_train,
 				                                                    self.all_inputs_train, prior_mean_on_grid,
 				                                                    self.mean_kernel,
-				                                                    self.task_kernel_train.inner_kernel,
+				                                                    self.task_kernel_train.inner,
 				                                                    self.shared_inputs_train,
 				                                                    self.shared_hp,
 				                                                    self.mixture_train)
@@ -546,7 +546,7 @@ class MagmaClust(BaseModel):
 				self.grid_pred,
 				jnp.array(0.),
 				self.mean_kernel,
-				self.task_kernel_pred.inner_kernel,
+				self.task_kernel_pred.inner,
 				False,  # As we use a grid
 				self.shared_hp,
 				self.mixture_train)
@@ -583,7 +583,7 @@ class MagmaClust(BaseModel):
 				self.grid_pred,
 				jnp.swapaxes(post_mean_pred, 0, 1), jnp.swapaxes(post_cov_pred, 0, 1), jnp.swapaxes(post_cov_crossed, 0, 1),
 				self.post_mean_grid, self.post_cov_grid,
-				self.task_kernel_pred.inner_kernel)
+				self.task_kernel_pred.inner)
 
 		else:
 			batched_predict = vmap(predict_single_cluster,

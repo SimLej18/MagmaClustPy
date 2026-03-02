@@ -10,14 +10,14 @@ from MagmaClustPy.linalg import cho_factor
 def predict_single_task(padded_inputs_pred, padded_outputs_pred, grid,
                         post_mean_pred, post_cov_pred, post_cov_crossed, post_mean_grid, post_cov_grid,
                         task_kernel) -> Tuple[Array, Array]:
-	# FIXME: using `task_kernel.left_kernel` assumes a specific kernel structure with noise on the right.
+	# FIXME: using `task_kernel.left` assumes a specific kernel structure with noise on the right.
 	#  We are not sure that the user will build the pred kernel that way.
 	post_mean_pred = jnp.where(~jnp.isnan(padded_outputs_pred), post_mean_pred, 0.)
 
 	gamma_pred = post_cov_pred + task_kernel(padded_inputs_pred)
-	gamma_grid = post_cov_grid + task_kernel.left_kernel(grid)  # No noise before
+	gamma_grid = post_cov_grid + task_kernel.left(grid)  # No noise before
 	#gamma_grid = post_cov_grid + task_kernel(grid)
-	gamma_crossed = post_cov_crossed + task_kernel.left_kernel(padded_inputs_pred, grid)
+	gamma_crossed = post_cov_crossed + task_kernel.left(padded_inputs_pred, grid)
 
 	padding_mask = ~jnp.isnan(padded_outputs_pred)[:, None] & ~jnp.isnan(padded_outputs_pred)[None, :]
 	gamma_pred = jnp.where(padding_mask, gamma_pred, jnp.eye(len(gamma_pred)))
@@ -45,4 +45,4 @@ def predict_single_cluster(padded_inputs_pred, padded_outputs_pred, grid,
 
 	return vmap(predict_single_task, in_axes=(0, 0, None, 0, 0, 0, None, None, pred_task_kernel.batch_in_axes))(
 		padded_inputs_pred, padded_outputs_pred, grid,
-		post_mean_pred, post_cov_pred, post_mean_crossed, post_mean_grid, post_cov_grid, pred_task_kernel.inner_kernel)
+		post_mean_pred, post_cov_pred, post_mean_crossed, post_mean_grid, post_cov_grid, pred_task_kernel.inner)

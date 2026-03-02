@@ -104,9 +104,9 @@ def optimise_task_kernel(task_kernel: AbstractKernel, inputs: Array, outputs: Ar
 	def task_fun_wrapper(kern):
 		task_batched_magma_nll = vmap(magma_nll, in_axes=(None if shared_hp else 0, 0, 0, None, None, 0, None))
 		cluster_batched_magma_nll = vmap(
-			lambda k, *args: task_batched_magma_nll(k.inner_kernel if cluster_hp else k, *args),
+			lambda k, *args: task_batched_magma_nll(k.inner if cluster_hp else k, *args),
 			in_axes=(0 if cluster_hp else None, None, None, 0, 0, None, None))
-		res = cluster_batched_magma_nll(kern.inner_kernel, inputs, outputs, post_means, post_covs, mappings, jitter)
+		res = cluster_batched_magma_nll(kern.inner, inputs, outputs, post_means, post_covs, mappings, jitter)
 
 		if mixture_coeffs is None or (not shared_hp and cluster_hp):
 			# No need to ponderate by mixture coefficients, we want to optimise every parameter

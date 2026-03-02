@@ -82,7 +82,7 @@ def compute_task_nlls(task_kernel: AbstractKernel, inputs: Array, outputs: Array
 	"""
 	task_batched_magma_nll = vmap(magma_nll, in_axes=(None if shared_hp else 0, 0, 0, None, None, 0, None))
 	cluster_batched_magma_nll = vmap(
-		lambda k, *args: task_batched_magma_nll(k.inner_kernel if cluster_hp else k, *args),
+		lambda k, *args: task_batched_magma_nll(k.inner if cluster_hp else k, *args),
 		in_axes=(0 if cluster_hp else None, None, None, 0, 0, None, None))
-	return cluster_batched_magma_nll(task_kernel.inner_kernel,
+	return cluster_batched_magma_nll(task_kernel.inner,
 	                                 inputs, outputs, post_means, post_covs, mappings, jitter)
