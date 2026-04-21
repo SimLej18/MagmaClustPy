@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "magma-py-minimal"
-version = "v0.1.4-alpha"
+version = "v0.1.5-alpha"
 description = "A Python implementation of the MagmaClust algorithm, coded in Jax."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -43,6 +43,7 @@ dependencies = [
     "numpy~=2.0.0",
     "matplotlib~=3.10.0",
     "kernax-ml==0.5.2a0",
+    "scikit-learn~=1.8.0",
 ]
 
 [project.optional-dependencies]
