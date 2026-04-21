@@ -6,3 +6,4 @@
 .idea/copilot*
 /benchmarks/logs/
 .continue
+/audit/

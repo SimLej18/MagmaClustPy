@@ -29,6 +29,12 @@ You can install a minimal version of the library using:
 pip install magma-py-minimal
 ```
 
+NOTE: for now, this minimal version is only compatible with python >= 3.12.
+
+NOTE: this version is a prototype and comes with no guarantee of stability. 
+For now, it is not advised to use it for production/scientific contributions. 
+Stable version is planned for summer 2026.
+
 ## Main differences with the original MagmaClustR library
 
 * This is a module written in Python instead of package coded in R (obviously)
