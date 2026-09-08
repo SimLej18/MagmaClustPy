@@ -1,3 +1,7 @@
+# ⚠️ Important notice ⚠️
+
+If you are looking to run the MagmaClust algorithm with a Python implementation, **[the Mimosa package](https://github.com/UNamurCSFaculty/mimosa-ml) is the way!** It is fully-featured, more stable, less buggy and actively maintained by Magma's original team!
+
 # MagmaClustPy
 ---
 
